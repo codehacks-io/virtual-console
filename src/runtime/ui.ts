@@ -1,6 +1,7 @@
 import { CONFIG } from './config';
 import { getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
+import { repl } from './repl';
 import { THEME_CONFIG, cycleTheme, initThemeIndex } from './theme';
 import { LogType } from './types';
 
@@ -266,9 +267,161 @@ export function createConsole() {
     container.appendChild(resizeHandle);
     container.appendChild(header);
     container.appendChild(logsContainer);
+
+    // REPL Container
+    const replContainer = document.createElement('div');
+    replContainer.className = 'virtual-console-repl';
+
+    // Suggestions Popup
+    const suggestionsBox = document.createElement('div');
+    suggestionsBox.className = 'virtual-console-suggestions';
+    suggestionsBox.style.display = 'none';
+    replContainer.appendChild(suggestionsBox);
+
+    // Input Wrapper (for ghost text)
+    const inputWrapper = document.createElement('div');
+    inputWrapper.className = 'virtual-console-input-wrapper';
+
+    // Ghost Text (Pre-evaluation result)
+    const ghostText = document.createElement('div');
+    ghostText.className = 'virtual-console-ghost';
+    inputWrapper.appendChild(ghostText);
+
+    // Input Field
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'virtual-console-input';
+    input.placeholder = 'Run command...';
+    input.spellcheck = false;
+    input.autocapitalize = 'off';
+    input.autocomplete = 'off';
+    inputWrapper.appendChild(input);
+
+    // Run Button
+    const runBtn = document.createElement('button');
+    runBtn.className = 'virtual-console-run-btn';
+    runBtn.textContent = 'Run';
+
+    replContainer.appendChild(inputWrapper);
+    replContainer.appendChild(runBtn);
+    container.appendChild(replContainer);
+
     document.body.appendChild(container);
 
     setupResize(resizeHandle);
+    setupREPL(input, runBtn, ghostText, suggestionsBox);
 
     addLog(['Debug Console initialized'], 'info'); // Changed from success to info as success isn't a standard log type
+}
+
+
+
+function setupREPL(
+    input: HTMLInputElement,
+    runBtn: HTMLButtonElement,
+    ghostText: HTMLElement,
+    suggestionsBox: HTMLElement
+) {
+    const execute = () => {
+        const cmd = input.value;
+        if (cmd) {
+            repl.execute(cmd);
+            input.value = '';
+            ghostText.textContent = '';
+            suggestionsBox.style.display = 'none';
+        }
+    };
+
+    runBtn.onclick = execute;
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            execute();
+        } else if (e.key === 'ArrowUp') {
+            const prev = repl.getHistoryPrevious();
+            if (prev !== null) {
+                input.value = prev;
+                // Move cursor to end
+                setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            const next = repl.getHistoryNext();
+            if (next !== null) {
+                input.value = next;
+            }
+            e.preventDefault();
+        } else if (e.key === 'Tab') {
+            // Accept first suggestion
+            if (suggestionsBox.style.display !== 'none' && suggestionsBox.firstChild) {
+                const suggestion = suggestionsBox.firstChild.textContent;
+                if (suggestion) {
+                    // Replace the last part of input with suggestion
+                    const lastDot = input.value.lastIndexOf('.');
+                    if (lastDot !== -1) {
+                        input.value = input.value.substring(0, lastDot + 1) + suggestion;
+                    } else {
+                        input.value = suggestion;
+                    }
+                    suggestionsBox.style.display = 'none';
+                }
+            }
+            e.preventDefault();
+        }
+    });
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+
+        // Pre-evaluation
+        const result = repl.preEvaluate(val);
+        if (result !== undefined) {
+            ghostText.innerHTML = '';
+            // We want to show the result as a preview. 
+            // Reuse createObjectViewer but maybe simplified?
+            // Or just text content for simple primitives?
+            // createObjectViewer returns an element.
+            const viewer = createObjectViewer(result);
+            ghostText.appendChild(viewer);
+        } else {
+            ghostText.textContent = '';
+        }
+
+        // Autocompletion
+        const suggestions = repl.getSuggestions(val);
+        if (suggestions.length > 0) {
+            suggestionsBox.innerHTML = '';
+            suggestions.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'vc-suggestion';
+                div.textContent = s;
+                div.onclick = () => {
+                    // Replace logic similar to Tab
+                    const lastDot = input.value.lastIndexOf('.');
+                    if (lastDot !== -1) {
+                        input.value = input.value.substring(0, lastDot + 1) + s;
+                    } else {
+                        input.value = s;
+                    }
+                    suggestionsBox.style.display = 'none';
+                    input.focus();
+                };
+                suggestionsBox.appendChild(div);
+            });
+            suggestionsBox.style.display = 'block';
+
+            // Position suggestions above input
+            suggestionsBox.style.bottom = '100%';
+            suggestionsBox.style.left = '0';
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions on blur (delayed to allow click)
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            suggestionsBox.style.display = 'none';
+        }, 200);
+    });
 }
