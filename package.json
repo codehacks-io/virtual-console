@@ -8,14 +8,14 @@
     "types": "./dist/vite.d.ts",
     "exports": {
         ".": {
+            "types": "./dist/vite.d.ts",
             "import": "./dist/vite.js",
-            "require": "./dist/vite.cjs",
-            "types": "./dist/vite.d.ts"
+            "require": "./dist/vite.cjs"
         },
         "./vite": {
+            "types": "./dist/vite.d.ts",
             "import": "./dist/vite.js",
-            "require": "./dist/vite.cjs",
-            "types": "./dist/vite.d.ts"
+            "require": "./dist/vite.cjs"
         }
     },
     "files": [

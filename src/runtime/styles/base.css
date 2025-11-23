@@ -258,3 +258,153 @@
   color: var(--vc-error-stack);
 }
 
+/* ============================================
+   REPL (JavaScript Interpreter)
+   ============================================ */
+.virtual-console-repl {
+  border-top: 1px solid var(--vc-border);
+  background: var(--vc-repl-bg, var(--vc-bg));
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.virtual-console-repl-input-container {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.virtual-console-repl-input {
+  flex: 1;
+  background: var(--vc-repl-input-bg, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--vc-repl-border, var(--vc-border));
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--vc-text);
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  resize: none;
+  min-height: 32px;
+  max-height: 120px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.virtual-console-repl-input:focus {
+  border-color: var(--vc-repl-focus-border, #4a9eff);
+}
+
+.virtual-console-repl-input::placeholder {
+  color: var(--vc-timestamp);
+  opacity: 0.5;
+}
+
+.virtual-console-repl-submit {
+  background: var(--vc-button-bg);
+  border: 1px solid var(--vc-button-border);
+  color: var(--vc-button-text);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  min-width: 44px; /* Mobile-friendly touch target */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.virtual-console-repl-submit:hover {
+  background: var(--vc-button-hover-bg);
+  border-color: var(--vc-button-hover-border);
+  transform: translateY(-1px);
+}
+
+.virtual-console-repl-submit:active {
+  transform: scale(0.95);
+}
+
+.virtual-console-repl-preview {
+  padding: 4px 8px;
+  background: rgba(128, 128, 128, 0.1);
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--vc-repl-preview, var(--vc-text));
+  border-left: 2px solid var(--vc-repl-preview-border, #888);
+}
+
+.virtual-console-repl-autocomplete {
+  position: absolute;
+  background: var(--vc-autocomplete-bg, rgba(40, 40, 40, 0.95));
+  border: 1px solid var(--vc-border);
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000000;
+  min-width: 200px;
+  backdrop-filter: blur(10px);
+}
+
+.autocomplete-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--vc-text);
+  transition: background 0.1s;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+  background: var(--vc-autocomplete-selected, rgba(74, 158, 255, 0.3));
+}
+
+/* REPL Log Entry Styles */
+.repl-input {
+  border-left: 3px solid var(--vc-repl-input-marker, #4a9eff);
+  background: rgba(74, 158, 255, 0.05);
+}
+
+.repl-output {
+  border-left: 3px solid var(--vc-repl-output-marker, #50fa7b);
+  background: rgba(80, 250, 123, 0.05);
+}
+
+.repl-error {
+  border-left: 3px solid var(--vc-log-error);
+  background: rgba(255, 85, 85, 0.05);
+}
+
+.repl-prefix {
+  font-weight: bold;
+  margin-right: 8px;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.repl-input .repl-prefix {
+  color: var(--vc-repl-input-marker, #4a9eff);
+}
+
+.repl-output .repl-prefix {
+  color: var(--vc-repl-output-marker, #50fa7b);
+}
+
+.repl-error .repl-prefix {
+  color: var(--vc-log-error);
+}
+
+.repl-input code {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  color: var(--vc-text);
+}
+
+.repl-output {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+}
+

@@ -3,6 +3,7 @@ import { getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
 import { THEME_CONFIG, cycleTheme, initThemeIndex } from './theme';
 import { LogType } from './types';
+import { createRepl } from './repl';
 
 let container: HTMLElement | null = null;
 let logsContainer: HTMLElement | null = null;
@@ -263,9 +264,13 @@ export function createConsole() {
     logsContainer = document.createElement('div');
     logsContainer.className = 'virtual-console-logs';
 
+    // Create REPL
+    const replElement = createRepl();
+
     container.appendChild(resizeHandle);
     container.appendChild(header);
     container.appendChild(logsContainer);
+    container.appendChild(replElement);
     document.body.appendChild(container);
 
     setupResize(resizeHandle);
