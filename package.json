@@ -1,0 +1,47 @@
+{
+    "name": "virtual-console",
+    "version": "0.0.1",
+    "description": "A bullet-proof virtual console for mobile debugging and error catching",
+    "type": "module",
+    "main": "./dist/vite.js",
+    "module": "./dist/vite.js",
+    "types": "./dist/vite.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/vite.js",
+            "require": "./dist/vite.cjs",
+            "types": "./dist/vite.d.ts"
+        },
+        "./vite": {
+            "import": "./dist/vite.js",
+            "require": "./dist/vite.cjs",
+            "types": "./dist/vite.d.ts"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "pnpm --filter playground dev",
+        "build": "tsup && cp -r src/runtime/styles dist/styles",
+        "lint": "tsc --noEmit",
+        "prepublishOnly": "pnpm build"
+    },
+    "keywords": [
+        "vite",
+        "plugin",
+        "console",
+        "debug",
+        "mobile",
+        "eruda",
+        "vconsole"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "tsup": "^8.0.1",
+        "typescript": "^5.3.2",
+        "vite": "^5.0.0"
+    }
+}

@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.css linguist-language=CSS
+*.html linguist-language=HTML
+*.md linguist-language=Markdown

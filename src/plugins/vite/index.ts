@@ -1,0 +1,137 @@
+import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import type { Plugin } from 'vite';
+
+// Get the directory of this plugin file
+// When built, this file is in dist/plugin.js, so __dirname is dist/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * Available theme names for the virtual console
+ */
+export type VirtualConsoleTheme = 'vscode' | 'chrome-light' | 'dracula' | 'nord' | 'tokyo';
+
+/**
+ * All available themes - used for validation
+ */
+const AVAILABLE_THEMES: readonly VirtualConsoleTheme[] = ['vscode', 'chrome-light', 'dracula', 'nord', 'tokyo'];
+
+export interface InjectVirtualConsoleOptions {
+    /**
+     * Array of theme names to include in the build
+     * At least one theme must be specified
+     * All themes will be available for runtime switching via the theme button
+     */
+    themes: VirtualConsoleTheme[];
+}
+
+/**
+ * Validates that the provided themes are valid
+ */
+function validateThemes(themes: string[]): asserts themes is VirtualConsoleTheme[] {
+    if (!themes || themes.length === 0) {
+        throw new Error(
+            `[inject-virtual-console] At least one theme must be specified.\n` +
+            `Available themes: ${AVAILABLE_THEMES.join(', ')}`
+        );
+    }
+
+    const invalidThemes = themes.filter(theme => !AVAILABLE_THEMES.includes(theme as VirtualConsoleTheme));
+
+    if (invalidThemes.length > 0) {
+        throw new Error(
+            `[inject-virtual-console] Invalid theme(s): ${invalidThemes.join(', ')}\n` +
+            `Available themes: ${AVAILABLE_THEMES.join(', ')}`
+        );
+    }
+}
+
+/**
+ * Vite plugin to inject the virtual console into index.html
+ * Injects base CSS, all selected theme CSS files, and the console JavaScript
+ */
+export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): Plugin {
+    // Validate themes early (at config time)
+    validateThemes(options.themes);
+
+    return {
+        name: 'virtual-console:vite',
+        transformIndexHtml: {
+            order: 'post',
+            handler(html) {
+                try {
+                    // Paths are relative to dist/ where this plugin resides after build
+                    const stylesDir = resolve(__dirname, 'styles');
+
+                    // Read base CSS (theme-independent styles)
+                    const baseCssPath = resolve(stylesDir, 'base.css');
+
+                    // Logic to handle dev (src) vs prod (dist) paths
+                    let realStylesDir = stylesDir;
+                    // The runtime is built to core.iife.js
+                    let realJsPath = resolve(__dirname, 'core.iife.js');
+
+                    if (!existsSync(baseCssPath)) {
+                        // Try src path for styles if not in dist
+                        // This happens if running via ts-node in dev without full build, 
+                        // BUT we really depend on the built runtime.
+                        // __dirname is src/plugins/vite, so we need to go up 3 levels to get to root/src
+                        const srcStylesDir = resolve(__dirname, '../../../src/runtime/styles');
+                        if (existsSync(resolve(srcStylesDir, 'base.css'))) {
+                            realStylesDir = srcStylesDir;
+                            // For JS, we still need the built IIFE. 
+                            // We assume the user has run 'pnpm build' or at least built the runtime.
+                            const distJsPath = resolve(__dirname, '../../../dist/core.iife.js');
+                            realJsPath = distJsPath;
+                        }
+                    }
+
+                    const baseCss = readFileSync(resolve(realStylesDir, 'base.css'), 'utf-8');
+
+                    // Read all theme CSS files
+                    const themeCssArray = options.themes.map(theme => {
+                        const themePath = resolve(realStylesDir, `themes/${theme}.css`);
+                        if (!existsSync(themePath)) throw new Error(`Theme CSS file not found: ${themePath}`);
+                        return readFileSync(themePath, 'utf-8');
+                    });
+
+                    const allCss = [baseCss, ...themeCssArray].join('\n\n');
+
+                    if (!existsSync(realJsPath)) {
+                        // If runtime is missing, we can't inject.
+                        // In a real dev scenario, we might want to watch the source and rebuild,
+                        // but for now we require a build.
+                        console.warn(`[inject-virtual-console] Runtime JS not found at ${realJsPath}. Skipping injection.`);
+                        return html;
+                    }
+                    const js = readFileSync(realJsPath, 'utf-8');
+
+                    const themeConfig = `
+            window.__VIRTUAL_CONSOLE_CONFIG__ = {
+              availableThemes: ${JSON.stringify(options.themes)},
+              defaultTheme: '${options.themes[0]}'
+            };
+          `;
+
+                    // Inject CSS in head
+                    let newHtml = html.replace('</head>', `<style>${allCss}</style></head>`);
+
+                    // Inject JS at the START of body to catch errors immediately
+                    if (newHtml.includes('<body')) {
+                        newHtml = newHtml.replace(/<body([^>]*)>/, `<body$1><script>${themeConfig}</script><script>${js}</script>`);
+                    } else {
+                        newHtml += `<script>${themeConfig}</script><script>${js}</script>`;
+                    }
+
+                    return newHtml;
+
+                } catch (error) {
+                    console.error(`[inject-virtual-console] Failed to inject console:`, error);
+                    return html;
+                }
+            }
+        }
+    };
+}
