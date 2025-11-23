@@ -1,0 +1,47 @@
+/**
+ * VS CODE DARK+ THEME
+ * The default VS Code color scheme
+ */
+
+.theme-vscode {
+  --vc-bg: #1e1e1e;
+  --vc-text: #d4d4d4;
+  --vc-header-bg: #252526;
+  --vc-border: #3c3c3c;
+  --vc-title: #cccccc;
+  
+  --vc-button-bg: #333333;
+  --vc-button-border: #3c3c3c;
+  --vc-button-text: #cccccc;
+  --vc-button-hover-bg: #3e3e42;
+  --vc-button-hover-border: #4c4c4c;
+  
+  --vc-resize-bg: linear-gradient(to bottom, rgba(60, 60, 60, 0.4), transparent);
+  --vc-resize-handle: #6a6a6a;
+  
+  --vc-log-border: rgba(60, 60, 60, 0.3);
+  --vc-log-info: #d4d4d4;
+  --vc-log-error: #f48771;
+  --vc-log-success: #4ec9b0;
+  --vc-log-warn: #dcdcaa;
+  --vc-timestamp: #6a9955;
+  
+  --vc-string: #ce9178;
+  --vc-number: #b5cea8;
+  --vc-boolean: #569cd6;
+  --vc-null: #569cd6;
+  --vc-undefined: #569cd6;
+  --vc-function: #dcdcaa;
+  --vc-symbol: #4ec9b0;
+  
+  --vc-object-header: #cccccc;
+  --vc-expand-icon: #858585;
+  --vc-object-preview: #858585;
+  --vc-object-type: #4ec9b0;
+  --vc-object-size: #858585;
+  --vc-property-key: #9cdcfe;
+  --vc-array-index: #858585;
+  --vc-getter: #4ec9b0;
+  --vc-circular: #f48771;
+  --vc-error-stack: #858585;
+}

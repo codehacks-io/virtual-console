@@ -1,0 +1,47 @@
+/**
+ * CHROME DEVTOOLS LIGHT THEME
+ * Chrome DevTools inspired light theme
+ */
+
+.theme-chrome-light {
+  --vc-bg: #ffffff;
+  --vc-text: #333;
+  --vc-header-bg: #f3f3f3;
+  --vc-border: #d4d4d4;
+  --vc-title: #333;
+  
+  --vc-button-bg: #ffffff;
+  --vc-button-border: #d4d4d4;
+  --vc-button-text: #333;
+  --vc-button-hover-bg: #e8e8e8;
+  --vc-button-hover-border: #b4b4b4;
+  
+  --vc-resize-bg: linear-gradient(to bottom, rgba(212, 212, 212, 0.4), transparent);
+  --vc-resize-handle: #b4b4b4;
+  
+  --vc-log-border: rgba(0, 0, 0, 0.1);
+  --vc-log-info: #333;
+  --vc-log-error: #e01e5a;
+  --vc-log-success: #0a8754;
+  --vc-log-warn: #c98100;
+  --vc-timestamp: #999;
+  
+  --vc-string: #c41a16;
+  --vc-number: #1c00cf;
+  --vc-boolean: #1c00cf;
+  --vc-null: #808080;
+  --vc-undefined: #808080;
+  --vc-function: #881391;
+  --vc-symbol: #1c00cf;
+  
+  --vc-object-header: #333;
+  --vc-expand-icon: #999;
+  --vc-object-preview: #999;
+  --vc-object-type: #333;
+  --vc-object-size: #999;
+  --vc-property-key: #881391;
+  --vc-array-index: #1c00cf;
+  --vc-getter: #881391;
+  --vc-circular: #e01e5a;
+  --vc-error-stack: #666;
+}

@@ -1,0 +1,47 @@
+/**
+ * DRACULA THEME
+ * Vibrant, high-contrast Dracula color scheme
+ */
+
+.theme-dracula {
+  --vc-bg: #282a36;
+  --vc-text: #f8f8f2;
+  --vc-header-bg: #21222c;
+  --vc-border: #44475a;
+  --vc-title: #f8f8f2;
+  
+  --vc-button-bg: #44475a;
+  --vc-button-border: #6272a4;
+  --vc-button-text: #f8f8f2;
+  --vc-button-hover-bg: #6272a4;
+  --vc-button-hover-border: #8be9fd;
+  
+  --vc-resize-bg: linear-gradient(to bottom, rgba(68, 71, 90, 0.4), transparent);
+  --vc-resize-handle: #6272a4;
+  
+  --vc-log-border: rgba(68, 71, 90, 0.3);
+  --vc-log-info: #f8f8f2;
+  --vc-log-error: #ff5555;
+  --vc-log-success: #50fa7b;
+  --vc-log-warn: #f1fa8c;
+  --vc-timestamp: #6272a4;
+  
+  --vc-string: #f1fa8c;
+  --vc-number: #bd93f9;
+  --vc-boolean: #bd93f9;
+  --vc-null: #6272a4;
+  --vc-undefined: #6272a4;
+  --vc-function: #50fa7b;
+  --vc-symbol: #8be9fd;
+  
+  --vc-object-header: #f8f8f2;
+  --vc-expand-icon: #6272a4;
+  --vc-object-preview: #6272a4;
+  --vc-object-type: #50fa7b;
+  --vc-object-size: #6272a4;
+  --vc-property-key: #8be9fd;
+  --vc-array-index: #6272a4;
+  --vc-getter: #50fa7b;
+  --vc-circular: #ff5555;
+  --vc-error-stack: #6272a4;
+}

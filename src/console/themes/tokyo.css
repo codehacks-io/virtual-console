@@ -1,0 +1,47 @@
+/**
+ * TOKYO NIGHT THEME
+ * Deep blues with warm accents
+ */
+
+.theme-tokyo {
+  --vc-bg: #1a1b26;
+  --vc-text: #a9b1d6;
+  --vc-header-bg: #16161e;
+  --vc-border: #292e42;
+  --vc-title: #c0caf5;
+  
+  --vc-button-bg: #24283b;
+  --vc-button-border: #292e42;
+  --vc-button-text: #c0caf5;
+  --vc-button-hover-bg: #292e42;
+  --vc-button-hover-border: #7aa2f7;
+  
+  --vc-resize-bg: linear-gradient(to bottom, rgba(41, 46, 66, 0.4), transparent);
+  --vc-resize-handle: #565f89;
+  
+  --vc-log-border: rgba(41, 46, 66, 0.3);
+  --vc-log-info: #a9b1d6;
+  --vc-log-error: #f7768e;
+  --vc-log-success: #9ece6a;
+  --vc-log-warn: #e0af68;
+  --vc-timestamp: #565f89;
+  
+  --vc-string: #9ece6a;
+  --vc-number: #ff9e64;
+  --vc-boolean: #bb9af7;
+  --vc-null: #565f89;
+  --vc-undefined: #565f89;
+  --vc-function: #7dcfff;
+  --vc-symbol: #2ac3de;
+  
+  --vc-object-header: #a9b1d6;
+  --vc-expand-icon: #565f89;
+  --vc-object-preview: #565f89;
+  --vc-object-type: #7aa2f7;
+  --vc-object-size: #565f89;
+  --vc-property-key: #7dcfff;
+  --vc-array-index: #565f89;
+  --vc-getter: #7aa2f7;
+  --vc-circular: #f7768e;
+  --vc-error-stack: #565f89;
+}
