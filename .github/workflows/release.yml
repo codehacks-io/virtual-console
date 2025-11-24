@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]*' # Matches v1, v1.0, v1.0.0, etc. (Prevents 'voldemort')
 
 permissions:
   contents: read
@@ -24,11 +24,25 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          # Default to GitHub Packages first
           registry-url: 'https://npm.pkg.github.com'
+          scope: '@codehacks-io'
 
       - name: Install Dependencies
         run: pnpm install
+
+      - name: Verify Version Match
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          
+          echo "Tag Version: $TAG_VERSION"
+          echo "Package Version: $PACKAGE_VERSION"
+          
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Version mismatch! Tag is v$TAG_VERSION but package.json is $PACKAGE_VERSION"
+            exit 1
+          fi
+          echo "Versions match. Proceeding..."
 
       - name: Build
         run: pnpm build
@@ -38,16 +52,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Switch registry to npm
-      - name: Setup Node.js for npm
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+      # Switch registry to npm (Commented out for now)
+      # - name: Setup Node.js for npm
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #     registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish to npm
-        # Use --access public for scoped packages, or just publish for unscoped
-        # Note: You might need to bump version in package.json before tagging
-        run: npm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # - name: Publish to npm
+      #   # Use --access public for scoped packages, or just publish for unscoped
+      #   # Note: You might need to bump version in package.json before tagging
+      #   run: npm publish --access public --no-git-checks
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

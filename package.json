@@ -1,6 +1,6 @@
 {
-    "name": "virtual-console",
-    "version": "0.0.1",
+    "name": "@codehacks-io/virtual-console",
+    "version": "0.0.0-rc.0",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
     "main": "./dist/vite.js",
@@ -44,4 +44,8 @@
         "typescript": "^5.3.2",
         "vite": "^5.0.0"
     }
+},
+"publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+}
 }
