@@ -3,19 +3,23 @@
     "version": "0.0.0-rc.0",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
-    "main": "./dist/vite.js",
-    "module": "./dist/vite.js",
-    "types": "./dist/vite.d.ts",
+    "main": "./dist/plugin/index.cjs",
+    "module": "./dist/plugin/index.js",
+    "types": "./dist/plugin/index.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/vite.js",
-            "require": "./dist/vite.cjs",
-            "types": "./dist/vite.d.ts"
+            "types": "./dist/plugin/index.d.ts",
+            "import": "./dist/plugin/index.js",
+            "require": "./dist/plugin/index.cjs"
         },
         "./vite": {
-            "import": "./dist/vite.js",
-            "require": "./dist/vite.cjs",
-            "types": "./dist/vite.d.ts"
+            "types": "./dist/plugin/index.d.ts",
+            "import": "./dist/plugin/index.js",
+            "require": "./dist/plugin/index.cjs"
+        },
+        "./runtime": {
+            "types": "./dist/runtime/core.d.ts",
+            "import": "./dist/runtime/core.iife.js"
         }
     },
     "files": [
@@ -23,7 +27,7 @@
     ],
     "scripts": {
         "dev": "pnpm --filter playground dev",
-        "build": "tsup && cp -r src/runtime/styles dist/styles",
+        "build": "tsup && cp -r src/runtime/styles dist/runtime/styles",
         "lint": "tsc --noEmit",
         "prepublishOnly": "pnpm build"
     },

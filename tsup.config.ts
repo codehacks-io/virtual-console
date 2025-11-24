@@ -5,11 +5,11 @@ export default defineConfig([
     {
         entry: ['src/runtime/core.ts'],
         format: ['iife'],
-        outDir: 'dist',
+        outDir: 'dist/runtime',
         name: 'VirtualConsole', // Global variable name for IIFE
         globalName: 'VirtualConsole',
         minify: true,
-        dts: false,
+        dts: true, // Generate d.ts for runtime
         outExtension: () => ({ js: '.iife.js' }),
         clean: true,
     },
@@ -17,10 +17,10 @@ export default defineConfig([
     {
         entry: ['src/plugins/vite/index.ts'],
         format: ['esm', 'cjs'],
-        outDir: 'dist',
+        outDir: 'dist/plugin',
         name: 'vite',
         dts: true,
-        clean: false, // Don't clean, or we delete the IIFE built above
+        clean: false,
         external: ['vite', 'fs', 'path', 'url'],
     },
 ]);
