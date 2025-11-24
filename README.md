@@ -12,12 +12,23 @@ A bullet-proof, mobile-friendly virtual console for debugging web applications. 
 
 ## Installation
 
+### 1. Configure Registry
+Create an `.npmrc` file in your project root:
+
+```ini
+@codehacks-io:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+### 2. Install Package
+
 ```bash
-pnpm add -D virtual-console
+# Ensure GITHUB_TOKEN is set in your environment
+export GITHUB_TOKEN=your_token_here
+
+pnpm add -D @codehacks-io/virtual-console
 # or
-npm install -D virtual-console
-# or
-yarn add -D virtual-console
+npm install -D @codehacks-io/virtual-console
 ```
 
 ## Usage
@@ -26,7 +37,7 @@ Add the plugin to your `vite.config.ts`:
 
 ```typescript
 import { defineConfig } from 'vite';
-import { virtualConsoleVitePlugin } from 'virtual-console';
+import { virtualConsoleVitePlugin } from '@codehacks-io/virtual-console';
 
 export default defineConfig({
   plugins: [
