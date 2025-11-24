@@ -9,23 +9,26 @@
   --vc-header-bg: #3b4252;
   --vc-border: #434c5e;
   --vc-title: #eceff4;
-  
+
   --vc-button-bg: #434c5e;
   --vc-button-border: #4c566a;
   --vc-button-text: #eceff4;
   --vc-button-hover-bg: #4c566a;
   --vc-button-hover-border: #5e81ac;
-  
+
   --vc-resize-bg: linear-gradient(to bottom, rgba(67, 76, 94, 0.4), transparent);
   --vc-resize-handle: #4c566a;
-  
+
   --vc-log-border: rgba(67, 76, 94, 0.3);
   --vc-log-info: #d8dee9;
-  --vc-log-error: #bf616a;
-  --vc-log-success: #a3be8c;
   --vc-log-warn: #ebcb8b;
+  --vc-log-warn-bg: rgba(235, 203, 139, 0.1);
+  --vc-log-warn-border: rgba(235, 203, 139, 0.2);
+  --vc-log-error: #bf616a;
+  --vc-log-error-bg: rgba(191, 97, 106, 0.1);
+  --vc-log-error-border: rgba(191, 97, 106, 0.2);
   --vc-timestamp: #4c566a;
-  
+
   --vc-string: #a3be8c;
   --vc-number: #b48ead;
   --vc-boolean: #81a1c1;
@@ -33,7 +36,7 @@
   --vc-undefined: #4c566a;
   --vc-function: #88c0d0;
   --vc-symbol: #8fbcbb;
-  
+
   --vc-object-header: #d8dee9;
   --vc-expand-icon: #4c566a;
   --vc-object-preview: #4c566a;

@@ -153,12 +153,23 @@ export function addLog(args: any[], type: LogType = 'info') {
 
     entry.appendChild(timestamp);
     entry.appendChild(content);
-    logsContainer.appendChild(entry);
 
-    // Limit log count
-    while (logsContainer.children.length > CONFIG.maxLogs) {
-        if (logsContainer.firstChild) {
-            logsContainer.removeChild(logsContainer.firstChild);
+    // Insert before REPL if it exists
+    const repl = logsContainer.querySelector('.virtual-console-repl');
+    if (repl) {
+        logsContainer.insertBefore(entry, repl);
+    } else {
+        logsContainer.appendChild(entry);
+    }
+
+    // Limit log count (excluding REPL)
+    const maxLogs = CONFIG.maxLogs;
+    // Count only log entries
+    const logEntries = logsContainer.querySelectorAll('.virtual-console-log-entry');
+    if (logEntries.length > maxLogs) {
+        // Remove the first one
+        if (logEntries[0]) {
+            logsContainer.removeChild(logEntries[0]);
         }
     }
 
@@ -282,11 +293,6 @@ export function createConsole() {
     const inputWrapper = document.createElement('div');
     inputWrapper.className = 'virtual-console-input-wrapper';
 
-    // Ghost Text (Pre-evaluation result)
-    const ghostText = document.createElement('div');
-    ghostText.className = 'virtual-console-ghost';
-    inputWrapper.appendChild(ghostText);
-
     // Input Field
     const input = document.createElement('input');
     input.type = 'text';
@@ -297,6 +303,11 @@ export function createConsole() {
     input.autocomplete = 'off';
     inputWrapper.appendChild(input);
 
+    // Ghost Text (Pre-evaluation result)
+    const ghostText = document.createElement('div');
+    ghostText.className = 'virtual-console-ghost';
+    inputWrapper.appendChild(ghostText);
+
     // Run Button
     const runBtn = document.createElement('button');
     runBtn.className = 'virtual-console-run-btn';
@@ -304,14 +315,20 @@ export function createConsole() {
 
     replContainer.appendChild(inputWrapper);
     replContainer.appendChild(runBtn);
-    container.appendChild(replContainer);
+
+    // Append REPL to logs container (as the last item)
+    logsContainer.appendChild(replContainer);
+
+    container.appendChild(resizeHandle);
+    container.appendChild(header);
+    container.appendChild(logsContainer);
 
     document.body.appendChild(container);
 
     setupResize(resizeHandle);
-    setupREPL(input, runBtn, ghostText, suggestionsBox);
+    setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);
 
-    addLog(['Debug Console initialized'], 'info'); // Changed from success to info as success isn't a standard log type
+    addLog(['Debug Console initialized'], 'info');
 }
 
 
@@ -320,8 +337,17 @@ function setupREPL(
     input: HTMLInputElement,
     runBtn: HTMLButtonElement,
     ghostText: HTMLElement,
-    suggestionsBox: HTMLElement
+    suggestionsBox: HTMLElement,
+    replContainer: HTMLElement
 ) {
+    // Focus input when clicking anywhere in the REPL area
+    replContainer.addEventListener('click', (e) => {
+        // Don't focus if clicking button or suggestions
+        if (e.target === replContainer || e.target === replContainer.querySelector('.virtual-console-input-wrapper')) {
+            input.focus();
+        }
+    });
+
     const execute = () => {
         const cmd = input.value;
         if (cmd) {
@@ -329,6 +355,11 @@ function setupREPL(
             input.value = '';
             ghostText.textContent = '';
             suggestionsBox.style.display = 'none';
+
+            // Scroll to bottom to show new log and REPL
+            if (logsContainer) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
         }
     };
 
@@ -364,6 +395,8 @@ function setupREPL(
                         input.value = suggestion;
                     }
                     suggestionsBox.style.display = 'none';
+                    // Trigger input event to update ghost text
+                    input.dispatchEvent(new Event('input'));
                 }
             }
             e.preventDefault();
@@ -405,6 +438,8 @@ function setupREPL(
                     }
                     suggestionsBox.style.display = 'none';
                     input.focus();
+                    // Trigger input event to update ghost text
+                    input.dispatchEvent(new Event('input'));
                 };
                 suggestionsBox.appendChild(div);
             });
@@ -412,7 +447,7 @@ function setupREPL(
 
             // Position suggestions above input
             suggestionsBox.style.bottom = '100%';
-            suggestionsBox.style.left = '0';
+            // Left is handled by CSS (16px)
         } else {
             suggestionsBox.style.display = 'none';
         }

@@ -27,12 +27,12 @@ export class REPL {
         this.addToHistory(command);
 
         // Log the command itself
-        addLog(['> ' + command], 'log');
+        addLog([command], 'command');
 
         try {
             // Use indirect eval to execute in global scope
             const result = (0, eval)(command);
-            addLog([result], 'info'); // Use info style for result, or maybe a custom 'result' style?
+            addLog([result], 'result');
             // The user requested syntax highlighting for output. 
             // addLog uses createObjectViewer which handles syntax highlighting for primitives and objects.
         } catch (error: any) {
@@ -153,7 +153,7 @@ export class REPL {
             // Get all property names (including prototype chain)
             const props = new Set<string>();
             let obj = context;
-            while (obj) {
+            while (obj !== null && obj !== undefined) {
                 Object.getOwnPropertyNames(obj).forEach(p => props.add(p));
                 obj = Object.getPrototypeOf(obj);
             }

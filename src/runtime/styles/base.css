@@ -22,7 +22,7 @@
   display: none;
   flex-direction: column;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-  
+
   /* Apply theme colors via CSS variables */
   background: var(--vc-bg);
   color: var(--vc-text);
@@ -103,7 +103,10 @@
 .virtual-console-logs {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 4px;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
 }
 
 .virtual-console-log-entry {
@@ -115,10 +118,102 @@
   border-bottom: 1px solid var(--vc-log-border);
 }
 
-.virtual-console-log-info { color: var(--vc-log-info); }
-.virtual-console-log-error { color: var(--vc-log-error); }
-.virtual-console-log-success { color: var(--vc-log-success); }
-.virtual-console-log-warn { color: var(--vc-log-warn); }
+.virtual-console-log-info {
+  color: var(--vc-log-info);
+}
+
+.virtual-console-log-error {
+  color: var(--vc-log-error);
+  background: var(--vc-log-error-bg);
+  border-bottom: 1px solid var(--vc-log-error-border);
+  position: relative;
+  padding-left: 20px;
+  /* Space for icon */
+}
+
+.virtual-console-log-error::before {
+  content: '⊗';
+  /* Error icon */
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--vc-log-error);
+}
+
+.virtual-console-log-success {
+  color: var(--vc-log-success);
+}
+
+.virtual-console-log-warn {
+  color: var(--vc-log-warn);
+  background: var(--vc-log-warn-bg);
+  border-bottom: 1px solid var(--vc-log-warn-border);
+  position: relative;
+  padding-left: 20px;
+  /* Space for icon */
+}
+
+.virtual-console-log-warn::before {
+  content: '⚠';
+  /* Warning icon */
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--vc-log-warn);
+}
+
+.virtual-console-log-command {
+  color: var(--vc-text);
+  font-weight: bold;
+  position: relative;
+  padding-left: 16px;
+  /* Space for indicator */
+}
+
+.virtual-console-log-command::before {
+  content: '>';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  color: var(--vc-button-text);
+  font-size: 10px;
+  opacity: 0.8;
+  line-height: 1;
+}
+
+.virtual-console-log-result {
+  color: var(--vc-text);
+  position: relative;
+  padding-left: 16px;
+  /* Space for indicator */
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.virtual-console-log-result::before {
+  content: '<';
+  position: absolute;
+  left: 4px;
+  top: 5px;
+  color: var(--vc-button-text);
+  font-size: 10px;
+  opacity: 0.8;
+  line-height: 1;
+}
+
+.virtual-console-log-command .virtual-console-timestamp,
+.virtual-console-log-result .virtual-console-timestamp {
+  display: none;
+}
+
+.virtual-console-log-command .virtual-console-content,
+.virtual-console-log-result .virtual-console-content {
+  padding: 0;
+  margin: 0;
+}
 
 .virtual-console-timestamp {
   font-size: 9px;
@@ -207,14 +302,38 @@
   margin: 2px 0;
 }
 
-.vc-primitive { color: var(--vc-text); }
-.vc-string { color: var(--vc-string); }
-.vc-number { color: var(--vc-number); }
-.vc-boolean { color: var(--vc-boolean); }
-.vc-null { color: var(--vc-null); }
-.vc-undefined { color: var(--vc-undefined); }
-.vc-function { color: var(--vc-function); font-style: italic; }
-.vc-symbol { color: var(--vc-symbol); }
+.vc-primitive {
+  color: var(--vc-text);
+}
+
+.vc-string {
+  color: var(--vc-string);
+}
+
+.vc-number {
+  color: var(--vc-number);
+}
+
+.vc-boolean {
+  color: var(--vc-boolean);
+}
+
+.vc-null {
+  color: var(--vc-null);
+}
+
+.vc-undefined {
+  color: var(--vc-undefined);
+}
+
+.vc-function {
+  color: var(--vc-function);
+  font-style: italic;
+}
+
+.vc-symbol {
+  color: var(--vc-symbol);
+}
 
 .vc-property-key {
   margin-right: 6px;
@@ -259,95 +378,126 @@
 }
 
 
+
+
 /* ============================================
    REPL (Read-Eval-Print Loop)
    ============================================ */
 .virtual-console-repl {
+  flex: 1 0 auto;
+  /* Grow to fill remaining space */
+  min-height: 24px;
   display: flex;
-  padding: 8px;
-  background: var(--vc-header-bg);
-  border-top: 1px solid var(--vc-border);
+  flex-direction: column;
+  padding: 0;
+  background: transparent;
+  margin-top: 2px;
   position: relative;
+  cursor: text;
+  /* Make the whole area look typeable */
 }
 
 .virtual-console-input-wrapper {
   flex: 1;
   position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  padding-left: 16px;
+  /* Space for prompt */
+}
+
+/* Prompt symbol */
+.virtual-console-input-wrapper::before {
+  content: '>';
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  color: var(--vc-button-text);
+  font-weight: bold;
+  opacity: 0.7;
+  pointer-events: none;
+  font-size: 10px;
 }
 
 .virtual-console-input {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--vc-border);
-  border-radius: 4px;
-  background: var(--vc-bg);
+  border: none;
+  background: transparent;
   color: var(--vc-text);
   font-family: inherit;
   font-size: inherit;
   outline: none;
-  z-index: 2;
-  background: transparent;
+  padding: 0;
+  margin: 0;
+  line-height: 1.4;
 }
 
 .virtual-console-input:focus {
-  border-color: var(--vc-button-hover-border);
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 .virtual-console-run-btn {
-  margin-left: 8px;
-  padding: 6px 12px;
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  padding: 2px 8px;
   background: var(--vc-button-bg);
   border: 1px solid var(--vc-button-border);
   color: var(--vc-button-text);
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 10px;
+  opacity: 0.5;
+  z-index: 5;
 }
 
-.virtual-console-run-btn:active {
-  transform: scale(0.95);
+.virtual-console-run-btn:hover {
+  opacity: 1;
 }
 
 .virtual-console-ghost {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  padding: 4px 8px;
+  position: relative;
+  opacity: 0.5;
   pointer-events: none;
-  opacity: 0.6;
   font-style: italic;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  background: var(--vc-header-bg);
-  border-top: 1px solid var(--vc-border);
-  transform: translateY(-100%);
+  margin-top: 2px;
+  min-height: 0;
+  /* Don't take space if empty */
+  color: var(--vc-text);
+  padding-left: 0;
+}
+
+/* Result arrow for ghost text - only if not empty */
+.virtual-console-ghost:not(:empty)::before {
+  content: '<';
+  position: absolute;
+  left: -14px;
+  opacity: 0.5;
 }
 
 .virtual-console-suggestions {
   position: absolute;
   bottom: 100%;
-  left: 0;
+  left: 16px;
   min-width: 200px;
   max-height: 150px;
   overflow-y: auto;
   background: var(--vc-bg);
   border: 1px solid var(--vc-border);
-  border-radius: 4px 4px 0 0;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-  z-index: 10;
+  border-radius: 4px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 .vc-suggestion {
   padding: 4px 8px;
   cursor: pointer;
   color: var(--vc-text);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 
 .vc-suggestion:hover {
   background: var(--vc-button-hover-bg);
 }
-

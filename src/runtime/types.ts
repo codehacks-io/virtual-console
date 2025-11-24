@@ -13,7 +13,7 @@ export interface ThemeConfig {
     defaultTheme: string;
 }
 
-export type LogType = 'log' | 'info' | 'warn' | 'error' | 'debug';
+export type LogType = 'log' | 'info' | 'warn' | 'error' | 'debug' | 'command' | 'result';
 
 export interface LogEntry {
     type: LogType;
