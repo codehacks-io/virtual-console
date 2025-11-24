@@ -1,6 +1,6 @@
 {
     "name": "@codehacks-io/virtual-console",
-    "version": "0.0.0-rc.1",
+    "version": "0.0.0-rc.2",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
     "main": "./dist/plugin/index.cjs",
@@ -27,7 +27,7 @@
     ],
     "scripts": {
         "dev": "pnpm --filter playground dev",
-        "build": "tsup && cp -r src/runtime/styles dist/runtime/styles",
+        "build": "tsup && mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/",
         "lint": "tsc --noEmit",
         "prepublishOnly": "pnpm build"
     },
