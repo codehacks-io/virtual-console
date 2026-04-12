@@ -15,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Version Match
+        uses: okcodes/vump/.github/actions/check@main
+        with:
+          version: ${{ github.ref_name }}
+
       - uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -28,11 +33,6 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install
-
-      - name: Verify Version Match
-        uses: okcodes/vump/.github/actions/check@main
-        with:
-          version: ${{ github.ref_name }}
 
       - name: Build
         run: pnpm build
