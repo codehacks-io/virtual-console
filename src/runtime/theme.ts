@@ -3,7 +3,7 @@ import { ThemeConfig } from './types';
 // We might need to decouple logging from theme if this becomes an issue.
 // For now, we'll pass a logger callback or just use console.log which is intercepted.
 
-export const THEME_CONFIG: ThemeConfig = window.__VIRTUAL_CONSOLE_CONFIG__ || {
+export const THEME_CONFIG: ThemeConfig = window.__VIRTUAL_CONSOLE_GLOBAL__?.theme || {
     availableThemes: ['vscode'],
     defaultTheme: 'vscode'
 };

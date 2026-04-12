@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import type { Plugin } from 'vite';
+import type { VirtualConsoleConfig } from '../../runtime/types';
 
 // Get the directory of this plugin file
 // When built, this file is in dist/plugin.js, so __dirname is dist/
@@ -25,6 +26,10 @@ export interface InjectVirtualConsoleOptions {
      * All themes will be available for runtime switching via the theme button
      */
     themes: VirtualConsoleTheme[];
+    /**
+     * Optional runtime configuration
+     */
+    options?: Partial<Omit<VirtualConsoleConfig, 'targetElement'>>;
 }
 
 /**
@@ -109,9 +114,12 @@ export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): 
                     const js = readFileSync(realJsPath, 'utf-8');
 
                     const themeConfig = `
-            window.__VIRTUAL_CONSOLE_CONFIG__ = {
-              availableThemes: ${JSON.stringify(options.themes)},
-              defaultTheme: '${options.themes[0]}'
+            window.__VIRTUAL_CONSOLE_GLOBAL__ = {
+              theme: {
+                availableThemes: ${JSON.stringify(options.themes)},
+                defaultTheme: '${options.themes[0]}'
+              },
+              options: ${JSON.stringify(options.options || {})}
             };
           `;
 

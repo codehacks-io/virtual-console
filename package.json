@@ -3,23 +3,19 @@
     "version": "0.0.1-alpha.0",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
-    "main": "./dist/plugin/index.cjs",
-    "module": "./dist/plugin/index.js",
-    "types": "./dist/plugin/index.d.ts",
+    "main": "./dist/runtime/index.cjs",
+    "module": "./dist/runtime/index.js",
+    "types": "./dist/runtime/index.d.ts",
     "exports": {
         ".": {
+            "types": "./dist/runtime/index.d.ts",
+            "import": "./dist/runtime/index.js",
+            "require": "./dist/runtime/index.cjs"
+        },
+        "./plugins/vite": {
             "types": "./dist/plugin/index.d.ts",
             "import": "./dist/plugin/index.js",
             "require": "./dist/plugin/index.cjs"
-        },
-        "./vite": {
-            "types": "./dist/plugin/index.d.ts",
-            "import": "./dist/plugin/index.js",
-            "require": "./dist/plugin/index.cjs"
-        },
-        "./runtime": {
-            "types": "./dist/runtime/core.d.ts",
-            "import": "./dist/runtime/core.iife.js"
         }
     },
     "files": [

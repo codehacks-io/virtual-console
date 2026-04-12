@@ -1,4 +1,4 @@
-import { CONFIG } from './config';
+import { getConfig } from './config';
 import { getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
@@ -8,7 +8,7 @@ import { LogType } from './types';
 let container: HTMLElement | null = null;
 let logsContainer: HTMLElement | null = null;
 let isVisible = false;
-let consoleHeight = CONFIG.defaultHeight;
+let consoleHeight = getConfig().defaultHeight;
 
 /**
  * Toggles console visibility
@@ -163,7 +163,7 @@ export function addLog(args: any[], type: LogType = 'info') {
     }
 
     // Limit log count (excluding REPL)
-    const maxLogs = CONFIG.maxLogs;
+    const maxLogs = getConfig().maxLogs;
     // Count only log entries
     const logEntries = logsContainer.querySelectorAll('.virtual-console-log-entry');
     if (logEntries.length > maxLogs) {
@@ -197,9 +197,10 @@ function setupResize(handle: HTMLElement) {
         if (!isResizing) return;
         const currentY = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
         const deltaY = startY - currentY;
+        const config = getConfig();
         const newHeight = Math.max(
-            CONFIG.minHeight,
-            Math.min(CONFIG.maxHeight, startHeight + deltaY)
+            config.minHeight,
+            Math.min(config.maxHeight, startHeight + deltaY)
         );
         consoleHeight = newHeight;
         if (container) {
@@ -323,7 +324,19 @@ export function createConsole() {
     container.appendChild(header);
     container.appendChild(logsContainer);
 
-    document.body.appendChild(container);
+    const config = getConfig();
+    if (config.targetElement) {
+        config.targetElement.appendChild(container);
+        // If mounting to a custom element, we might want absolute positioning relative to it
+        // But for now, we keep the default styles (fixed) unless overridden by CSS
+        // Actually, if it's a custom container, 'absolute' is usually better if the container is relative
+        // Let's force absolute if target is not body?
+        if (config.targetElement !== document.body) {
+            container.style.position = 'absolute';
+        }
+    } else {
+        document.body.appendChild(container);
+    }
 
     setupResize(resizeHandle);
     setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);

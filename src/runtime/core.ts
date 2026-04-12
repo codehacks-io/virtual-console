@@ -1,6 +1,7 @@
-import { CONFIG } from './config';
+import { getConfig, setConfig } from './config';
 import { createConsole, toggleConsole } from './ui';
 import { interceptConsole, setupErrorListeners } from './interceptor';
+import { VirtualConsoleConfig } from './types';
 
 let longPressTimer: any = null;
 let currentTouchCount = 0;
@@ -11,7 +12,7 @@ let currentTouchCount = 0;
 function setupActivation() {
     // Keyboard shortcut: Shift+C (or configured key)
     document.addEventListener('keydown', (e) => {
-        if (e.shiftKey && e.code === CONFIG.keyboardShortcut) {
+        if (e.shiftKey && e.code === getConfig().keyboardShortcut) {
             e.preventDefault();
             toggleConsole();
         }
@@ -28,14 +29,15 @@ function setupActivation() {
         }
 
         // Start timer if we have the required finger count
-        if (currentTouchCount === CONFIG.longPressFingers) {
+        const config = getConfig();
+        if (currentTouchCount === config.longPressFingers) {
             longPressTimer = setTimeout(() => {
                 // Verify we still have the correct finger count
-                if (currentTouchCount === CONFIG.longPressFingers) {
+                if (currentTouchCount === config.longPressFingers) {
                     toggleConsole();
                 }
                 longPressTimer = null;
-            }, CONFIG.longPressDuration);
+            }, config.longPressDuration);
         }
     }, { passive: true });
 
@@ -66,10 +68,18 @@ function setupActivation() {
 }
 
 // Initialize
-(function init() {
+export function mount(options?: Partial<VirtualConsoleConfig>) {
+    // Prevent multiple mounts
+    if (window.__VIRTUAL_CONSOLE_MOUNTED__) return;
+    window.__VIRTUAL_CONSOLE_MOUNTED__ = true;
+
+    if (options) {
+        setConfig(options);
+    }
+
     console.log("Injecting virtual console...");
     createConsole();
     interceptConsole();
     setupErrorListeners();
     setupActivation();
-})();
+}
