@@ -29,6 +29,7 @@ jobs:
 
       - run: node -v
       - run: npm -v
+      # Need to install pnpm with this, not only with 'pnpm/action-setup' or build will fail.
       - run: npm i -g pnpm
       - run: pnpm -v
 
