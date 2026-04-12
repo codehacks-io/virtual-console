@@ -1,6 +1,6 @@
 {
     "name": "@codehacks/virtual-console",
-    "version": "0.0.1-alpha.4",
+    "version": "0.0.1-alpha.5",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
     "main": "./dist/runtime/index.cjs",
