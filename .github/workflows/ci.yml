@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - repl-gemini-3
   pull_request:
     branches:
       - main
