@@ -16,9 +16,6 @@ jobs:
         with:
           version: ${{ github.ref_name }}
 
-      - run: node -v
-      - run: npm -v
-
       - uses: pnpm/action-setup@v6
         with:
           version: 10
