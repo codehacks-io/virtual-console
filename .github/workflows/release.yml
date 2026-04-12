@@ -5,29 +5,25 @@ on:
     tags:
       - 'v[0-9]*' # Matches v1, v1.0, v1.0.0, etc. (Prevents 'voldemort')
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Verify Version Match
         uses: okcodes/vump/.github/actions/check@main
         with:
           version: ${{ github.ref_name }}
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v6
         with:
-          version: 8
+          version: 10
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '25'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
