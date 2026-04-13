@@ -103,11 +103,13 @@
   justify-content: center;
   opacity: 0.7;
   transition: all 0.15s ease;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .virtual-console-button svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .virtual-console-button:hover {
@@ -133,6 +135,20 @@
 }
 .dock-right .virtual-console-resize-handle {
   top: 0; bottom: 0; left: -3px; width: 6px; cursor: col-resize;
+}
+
+/* Invisible touch targets for resize handles (mobile friendly) */
+.dock-bottom .virtual-console-resize-handle::after,
+.dock-top .virtual-console-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: -10px; bottom: -10px; left: 0; right: 0;
+}
+.dock-left .virtual-console-resize-handle::after,
+.dock-right .virtual-console-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: -10px; right: -10px; top: 0; bottom: 0;
 }
 
 /* Scrollbar customization */
@@ -164,6 +180,7 @@
   overflow-y: auto;
   padding: 8px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
@@ -560,4 +577,57 @@
 
 .vc-suggestion:hover {
   background: var(--vc-button-hover-bg);
+}
+
+/* ============================================
+   MOBILE OVERRIDES & POPUP MENU
+   ============================================ */
+.vc-dock-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--vc-bg);
+  border: 1px solid var(--vc-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: 36px 36px 36px;
+  grid-template-rows: 36px 36px 36px;
+  gap: 4px;
+  padding: 12px;
+}
+
+.vc-dock-menu-btn {
+  background: var(--vc-button-bg, transparent);
+  border: 1px solid var(--vc-border, rgba(128, 128, 128, 0.2));
+  color: var(--vc-button-text, var(--vc-text));
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.vc-dock-menu-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.vc-dock-menu-btn:hover {
+  background: var(--vc-button-hover-bg, rgba(128, 128, 128, 0.15));
+}
+
+.vc-dock-btn-top { grid-column: 2; grid-row: 1; }
+.vc-dock-btn-bottom { grid-column: 2; grid-row: 3; }
+.vc-dock-btn-left { grid-column: 1; grid-row: 2; }
+.vc-dock-btn-right { grid-column: 3; grid-row: 2; }
+
+@media (max-width: 768px) {
+  /* Prevent iOS zoom on inputs */
+  .virtual-console-input {
+    font-size: 16px !important;
+  }
 }

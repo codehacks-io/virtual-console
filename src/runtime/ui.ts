@@ -204,6 +204,50 @@ function applyDockPosition() {
     }
 }
 
+function setupDockMenu(btn: HTMLElement) {
+    const menu = document.createElement('div');
+    menu.className = 'vc-dock-menu';
+    menu.style.display = 'none';
+
+    // SVG Icons mimicking dock targets
+    const createBtn = (dir: DockPosition, svgParams: string) => {
+        const dBtn = document.createElement('button');
+        dBtn.className = `vc-dock-menu-btn vc-dock-btn-${dir}`;
+        dBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgParams}</svg>`;
+        dBtn.onclick = (e) => {
+            e.stopPropagation();
+            dockPosition = dir;
+            localStorage.setItem('vc_dock_pos', dockPosition);
+            applyDockPosition();
+            menu.style.display = 'none';
+        };
+        return dBtn;
+    };
+
+    // Up Icon
+    menu.appendChild(createBtn('top', '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="3" y="3" width="18" height="6" rx="2" ry="2" fill="currentColor" fill-opacity="0.3"></rect>'));
+    // Down Icon
+    menu.appendChild(createBtn('bottom', '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="3" y="15" width="18" height="6" rx="2" ry="2" fill="currentColor" fill-opacity="0.3"></rect>'));
+    // Left Icon
+    menu.appendChild(createBtn('left', '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="3" y="3" width="6" height="18" rx="2" ry="2" fill="currentColor" fill-opacity="0.3"></rect>'));
+    // Right Icon
+    menu.appendChild(createBtn('right', '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="15" y="3" width="6" height="18" rx="2" ry="2" fill="currentColor" fill-opacity="0.3"></rect>'));
+
+    btn.appendChild(menu);
+    btn.style.position = 'relative';
+
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === 'none' ? 'grid' : 'none';
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target as Node) && e.target !== btn && !btn.contains(e.target as Node)) {
+            menu.style.display = 'none';
+        }
+    });
+}
+
 function setupDragAndDrop(header: HTMLElement) {
     let isDragging = false;
     let overlay: HTMLElement | null = null;
@@ -387,6 +431,12 @@ export function createConsole() {
         controls.appendChild(themeBtn);
     }
 
+    const dockBtn = document.createElement('button');
+    dockBtn.className = 'virtual-console-button';
+    dockBtn.title = 'Dock Position';
+    dockBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="3" y="15" width="18" height="6" rx="2" ry="2"></rect></svg>';
+    setupDockMenu(dockBtn);
+
     const clearBtn = document.createElement('button');
     clearBtn.className = 'virtual-console-button';
     clearBtn.title = 'Clear Logs';
@@ -399,6 +449,7 @@ export function createConsole() {
     closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
     closeBtn.onclick = toggleConsole;
 
+    controls.appendChild(dockBtn);
     controls.appendChild(clearBtn);
     controls.appendChild(closeBtn);
     header.appendChild(title);
