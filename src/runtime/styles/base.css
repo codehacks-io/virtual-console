@@ -51,8 +51,8 @@
 
 .vc-drag-overlay {
   position: fixed;
-  background: var(--vc-border);
-  opacity: 0.3;
+  background: rgba(128, 128, 128, 0.2);
+  border: 2px dashed rgba(128, 128, 128, 0.8);
   pointer-events: none;
   z-index: 1000000;
   display: none;
