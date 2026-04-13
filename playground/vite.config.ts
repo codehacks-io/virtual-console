@@ -5,6 +5,9 @@ import { virtualConsoleVitePlugin } from '../src/plugins/vite/index';
 // import { virtualConsoleVitePlugin } from '@codehacks/virtual-console/plugins/vite';
 
 export default defineConfig({
+    server: {
+        host: true
+    },
     plugins: [
         react(),
         virtualConsoleVitePlugin({
