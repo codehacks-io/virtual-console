@@ -12,101 +12,162 @@
    ============================================ */
 .virtual-console-container {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 12px;
   z-index: 999999;
   display: none;
   flex-direction: column;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-
-  /* Apply theme colors via CSS variables */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   background: var(--vc-bg);
   color: var(--vc-text);
+  box-sizing: border-box;
+}
+
+.virtual-console-container * {
+  box-sizing: border-box;
 }
 
 .virtual-console-container.virtual-console-visible {
   display: flex;
 }
 
+/* Docking configurations */
+.virtual-console-container.dock-bottom {
+  bottom: 0; left: 0; right: 0; 
+  border-top: 1px solid var(--vc-border);
+}
+.virtual-console-container.dock-top {
+  top: 0; left: 0; right: 0; 
+  border-bottom: 1px solid var(--vc-border);
+}
+.virtual-console-container.dock-left {
+  top: 0; bottom: 0; left: 0; 
+  border-right: 1px solid var(--vc-border);
+}
+.virtual-console-container.dock-right {
+  top: 0; bottom: 0; right: 0; 
+  border-left: 1px solid var(--vc-border);
+}
+
+.vc-drag-overlay {
+  position: fixed;
+  background: var(--vc-border);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1000000;
+  display: none;
+}
+
 .virtual-console-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  cursor: move;
+  padding: 4px 8px;
+  cursor: grab;
   background: var(--vc-header-bg);
   border-bottom: 1px solid var(--vc-border);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.virtual-console-header:active {
+  cursor: grabbing;
 }
 
 .virtual-console-title {
-  font-weight: bold;
-  color: var(--vc-title);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vc-title, var(--vc-text));
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .virtual-console-controls {
   display: flex;
-  gap: 8px;
+  gap: 2px;
 }
 
 .virtual-console-button {
-  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--vc-button-text, var(--vc-text));
   cursor: pointer;
-  font-size: 10px;
-  border-radius: 3px;
-  transition: all 0.2s;
-  background: var(--vc-button-bg);
-  border: 1px solid var(--vc-button-border);
-  color: var(--vc-button-text);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.15s ease;
+}
+
+.virtual-console-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .virtual-console-button:hover {
-  transform: translateY(-1px);
-  background: var(--vc-button-hover-bg);
-  border-color: var(--vc-button-hover-border);
-}
-
-.virtual-console-button:active {
-  transform: scale(0.95);
+  background: var(--vc-button-hover-bg, rgba(128, 128, 128, 0.15));
+  opacity: 1;
 }
 
 .virtual-console-resize-handle {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  cursor: ns-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--vc-resize-bg);
+  background: transparent;
+  z-index: 10;
 }
 
-.virtual-console-resize-handle::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 48px;
-  height: 4px;
-  border-radius: 3px;
-  opacity: 0.8;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  background: var(--vc-resize-handle);
+/* Handle dimensions and cursors based on dock */
+.dock-bottom .virtual-console-resize-handle {
+  top: -3px; left: 0; right: 0; height: 6px; cursor: row-resize;
+}
+.dock-top .virtual-console-resize-handle {
+  bottom: -3px; left: 0; right: 0; height: 6px; cursor: row-resize;
+}
+.dock-left .virtual-console-resize-handle {
+  top: 0; bottom: 0; right: -3px; width: 6px; cursor: col-resize;
+}
+.dock-right .virtual-console-resize-handle {
+  top: 0; bottom: 0; left: -3px; width: 6px; cursor: col-resize;
+}
+
+/* Scrollbar customization */
+.virtual-console-container ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.virtual-console-container ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.virtual-console-container ::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.2);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 5px;
+}
+.virtual-console-container ::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.4);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.virtual-console-container ::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .virtual-console-logs {
   flex: 1;
   overflow-y: auto;
-  padding: 4px;
+  padding: 8px;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
 }
 
 .virtual-console-log-entry {
@@ -385,7 +446,6 @@
    ============================================ */
 .virtual-console-repl {
   flex: 1 0 auto;
-  /* Grow to fill remaining space */
   min-height: 24px;
   display: flex;
   flex-direction: column;
@@ -394,7 +454,7 @@
   margin-top: 2px;
   position: relative;
   cursor: text;
-  /* Make the whole area look typeable */
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
 }
 
 .virtual-console-input-wrapper {

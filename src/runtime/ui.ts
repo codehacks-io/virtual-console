@@ -8,7 +8,12 @@ import { LogType } from './types';
 let container: HTMLElement | null = null;
 let logsContainer: HTMLElement | null = null;
 let isVisible = false;
-let consoleHeight = getConfig().defaultHeight;
+
+type DockPosition = 'bottom' | 'top' | 'left' | 'right';
+let dockPosition: DockPosition = (localStorage.getItem('vc_dock_pos') as DockPosition) || 'bottom';
+let consoleWidth = parseInt(localStorage.getItem('vc_dock_width') || '400', 10);
+let consoleHeight = parseInt(localStorage.getItem('vc_dock_height') || getConfig().defaultHeight.toString(), 10);
+
 
 /**
  * Toggles console visibility
@@ -181,17 +186,126 @@ export function addLog(args: any[], type: LogType = 'info') {
     logsContainer.scrollTop = logsContainer.scrollHeight;
 }
 
+function applyDockPosition() {
+    if (!container) return;
+    
+    container.classList.remove('dock-top', 'dock-bottom', 'dock-left', 'dock-right');
+    container.classList.add(`dock-${dockPosition}`);
+    
+    // Reset dimensions
+    container.style.width = '';
+    container.style.height = '';
+    
+    if (dockPosition === 'bottom' || dockPosition === 'top') {
+        container.style.height = `${consoleHeight}px`;
+        container.style.width = '100%';
+    } else {
+        container.style.width = `${consoleWidth}px`;
+        container.style.height = '100%';
+    }
+}
+
+function setupDragAndDrop(header: HTMLElement) {
+    let isDragging = false;
+    let overlay: HTMLElement | null = null;
+    let currentDropZone: DockPosition | null = null;
+
+    function startDrag(e: MouseEvent | TouchEvent) {
+        // Prevent drag on buttons
+        if ((e.target as HTMLElement).closest('.virtual-console-button')) return;
+        
+        isDragging = true;
+        document.body.style.userSelect = 'none';
+        
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'vc-drag-overlay';
+            document.body.appendChild(overlay);
+        }
+    }
+
+    function drag(e: MouseEvent | TouchEvent) {
+        if (!isDragging || !overlay) return;
+        
+        const clientX = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+        const clientY = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        // Calculate distances to edges to snap
+        const distTop = clientY;
+        const distBottom = h - clientY;
+        const distLeft = clientX;
+        const distRight = w - clientX;
+        
+        const minDist = Math.min(distTop, distBottom, distLeft, distRight);
+        
+        overlay.style.display = 'block';
+        
+        if (minDist === distTop) {
+            currentDropZone = 'top';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '20vh';
+        } else if (minDist === distBottom) {
+            currentDropZone = 'bottom';
+            overlay.style.top = '80vh';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '20vh';
+        } else if (minDist === distLeft) {
+            currentDropZone = 'left';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '20vw';
+            overlay.style.height = '100vh';
+        } else if (minDist === distRight) {
+            currentDropZone = 'right';
+            overlay.style.top = '0';
+            overlay.style.left = '80vw';
+            overlay.style.width = '20vw';
+            overlay.style.height = '100vh';
+        }
+    }
+
+    function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        document.body.style.userSelect = '';
+        
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+
+        if (currentDropZone && currentDropZone !== dockPosition) {
+            dockPosition = currentDropZone;
+            localStorage.setItem('vc_dock_pos', dockPosition);
+            applyDockPosition();
+        }
+    }
+
+    header.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+    header.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('touchend', stopDrag);
+}
+
 /**
  * Sets up resize
  */
 function setupResize(handle: HTMLElement) {
-    let startY = 0;
-    let startHeight = 0;
+    let startX = 0, startY = 0;
+    let startWidth = 0, startHeight = 0;
     let isResizing = false;
 
     function startResize(e: MouseEvent | TouchEvent) {
         isResizing = true;
+        startX = e.type === 'touchstart' ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
         startY = e.type === 'touchstart' ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+        startWidth = consoleWidth;
         startHeight = consoleHeight;
         document.body.style.userSelect = 'none';
         e.preventDefault();
@@ -199,16 +313,30 @@ function setupResize(handle: HTMLElement) {
 
     function resize(e: MouseEvent | TouchEvent) {
         if (!isResizing) return;
+        const currentX = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
         const currentY = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
-        const deltaY = startY - currentY;
         const config = getConfig();
-        const newHeight = Math.max(
-            config.minHeight,
-            Math.min(config.maxHeight, startHeight + deltaY)
-        );
-        consoleHeight = newHeight;
-        if (container) {
-            container.style.height = `${newHeight}px`;
+
+        if (dockPosition === 'bottom') {
+            const deltaY = startY - currentY;
+            consoleHeight = Math.max(config.minHeight, Math.min(config.maxHeight, startHeight + deltaY));
+            if (container) container.style.height = `${consoleHeight}px`;
+            localStorage.setItem('vc_dock_height', consoleHeight.toString());
+        } else if (dockPosition === 'top') {
+            const deltaY = currentY - startY;
+            consoleHeight = Math.max(config.minHeight, Math.min(config.maxHeight, startHeight + deltaY));
+            if (container) container.style.height = `${consoleHeight}px`;
+            localStorage.setItem('vc_dock_height', consoleHeight.toString());
+        } else if (dockPosition === 'left') {
+            const deltaX = currentX - startX;
+            consoleWidth = Math.max(200, Math.min(window.innerWidth * 0.8, startWidth + deltaX));
+            if (container) container.style.width = `${consoleWidth}px`;
+            localStorage.setItem('vc_dock_width', consoleWidth.toString());
+        } else if (dockPosition === 'right') {
+            const deltaX = startX - currentX;
+            consoleWidth = Math.max(200, Math.min(window.innerWidth * 0.8, startWidth + deltaX));
+            if (container) container.style.width = `${consoleWidth}px`;
+            localStorage.setItem('vc_dock_width', consoleWidth.toString());
         }
     }
 
@@ -221,7 +349,6 @@ function setupResize(handle: HTMLElement) {
     handle.addEventListener('mousedown', startResize);
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
-
     handle.addEventListener('touchstart', startResize, { passive: false });
     document.addEventListener('touchmove', resize, { passive: false });
     document.addEventListener('touchend', stopResize);
@@ -237,7 +364,7 @@ export function createConsole() {
     const initialTheme = initThemeIndex();
 
     container.className = `virtual-console-container theme-${initialTheme}`;
-    container.style.height = `${consoleHeight}px`;
+    applyDockPosition();
 
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'virtual-console-resize-handle';
@@ -247,29 +374,30 @@ export function createConsole() {
 
     const title = document.createElement('div');
     title.className = 'virtual-console-title';
-    title.textContent = '🔍 Debug Console';
+    title.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Debug Console';
 
     const controls = document.createElement('div');
     controls.className = 'virtual-console-controls';
 
-    // Add theme button if multiple themes are available
     if (THEME_CONFIG.availableThemes.length > 1) {
         const themeBtn = document.createElement('button');
         themeBtn.className = 'virtual-console-button';
-        themeBtn.textContent = '🎨 Theme';
-        themeBtn.title = 'Cycle through available themes';
+        themeBtn.title = 'Cycle Theme';
+        themeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>';
         themeBtn.onclick = () => container && cycleTheme(container);
         controls.appendChild(themeBtn);
     }
 
     const clearBtn = document.createElement('button');
     clearBtn.className = 'virtual-console-button';
-    clearBtn.textContent = 'Clear';
+    clearBtn.title = 'Clear Logs';
+    clearBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>';
     clearBtn.onclick = clearLogs;
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'virtual-console-button';
-    closeBtn.textContent = 'Close';
+    closeBtn.title = 'Close Console';
+    closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
     closeBtn.onclick = toggleConsole;
 
     controls.appendChild(clearBtn);
@@ -343,6 +471,7 @@ export function createConsole() {
     }
 
     setupResize(resizeHandle);
+    setupDragAndDrop(header);
     setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);
 
     addLog(['Debug Console initialized'], 'info');
