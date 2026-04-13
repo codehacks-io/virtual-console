@@ -1,13 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 import type { Plugin } from 'vite';
 import type { VirtualConsoleConfig } from '../../runtime/types';
-
-// Get the directory of this plugin file
-// When built, this file is in dist/plugin.js, so __dirname is dist/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * Available theme names for the virtual console

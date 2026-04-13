@@ -33,6 +33,7 @@ export default defineConfig([
         name: 'vite',
         dts: true,
         clean: false,
+        shims: true,
         external: ['vite', 'fs', 'path', 'url'],
     },
 ]);
