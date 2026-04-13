@@ -24,7 +24,11 @@ export function toggleConsole() {
  */
 function clearLogs() {
     if (!logsContainer) return;
+    const repl = logsContainer.querySelector('.virtual-console-repl');
     logsContainer.innerHTML = '';
+    if (repl) {
+        logsContainer.appendChild(repl);
+    }
     addLog(['Console cleared'], 'info');
 }
 
