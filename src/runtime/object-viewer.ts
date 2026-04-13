@@ -51,6 +51,57 @@ export function createObjectViewer(value: any, seen = new WeakSet<object>()): HT
         return container;
     }
 
+    // Handle Error objects
+    if (value instanceof Error) {
+        container.className += ' vc-error';
+        container.style.color = 'var(--vc-log-error)';
+
+        // Header for expand/collapse
+        const header = document.createElement('div');
+        header.className = 'vc-object-header';
+
+        // Expand icon
+        const expandIcon = document.createElement('span');
+        expandIcon.className = 'vc-expand-icon';
+
+        // Main error message
+        const messageSpan = document.createElement('span');
+        messageSpan.style.fontWeight = 'bold';
+        messageSpan.textContent = `${value.name}: ${value.message}`;
+
+        header.appendChild(expandIcon);
+        header.appendChild(messageSpan);
+        container.appendChild(header);
+
+        // Stack trace (if available)
+        if (value.stack) {
+            const stackDiv = document.createElement('div');
+            stackDiv.className = 'vc-error-stack';
+            stackDiv.style.display = 'none'; // Hidden by default
+
+            // Remove the first line if it duplicates the message
+            const stackLines = value.stack.split('\n');
+            if (stackLines[0].includes(value.message)) {
+                stackLines.shift();
+            }
+            stackDiv.textContent = stackLines.join('\n');
+            container.appendChild(stackDiv);
+
+            // Toggle logic
+            let isExpanded = false;
+            header.onclick = (e) => {
+                e.stopPropagation();
+                isExpanded = !isExpanded;
+                expandIcon.classList.toggle('expanded', isExpanded);
+                stackDiv.style.display = isExpanded ? 'block' : 'none';
+            };
+        } else {
+            expandIcon.style.visibility = 'hidden';
+            header.style.cursor = 'default';
+        }
+        return container;
+    }
+
     // Handle objects and arrays
     if (typeof value === 'object') {
         // Check for circular reference

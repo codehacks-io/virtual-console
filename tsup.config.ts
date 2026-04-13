@@ -3,24 +3,37 @@ import { defineConfig } from 'tsup';
 export default defineConfig([
     // Build the runtime IIFE (injected script)
     {
-        entry: ['src/runtime/core.ts'],
+        entry: {
+            core: 'src/runtime/iife-entry.ts',
+        },
         format: ['iife'],
-        outDir: 'dist',
-        name: 'VirtualConsole', // Global variable name for IIFE
+        outDir: 'dist/runtime',
+        name: 'VirtualConsole',
         globalName: 'VirtualConsole',
         minify: true,
         dts: false,
         outExtension: () => ({ js: '.iife.js' }),
         clean: true,
     },
+    // Build the runtime Library (ESM/CJS for manual import)
+    {
+        entry: {
+            index: 'src/runtime/core.ts',
+        },
+        format: ['esm', 'cjs'],
+        outDir: 'dist/runtime',
+        dts: true,
+        clean: false,
+    },
     // Build the Vite plugin
     {
         entry: ['src/plugins/vite/index.ts'],
         format: ['esm', 'cjs'],
-        outDir: 'dist',
+        outDir: 'dist/plugin',
         name: 'vite',
         dts: true,
-        clean: false, // Don't clean, or we delete the IIFE built above
+        clean: false,
+        shims: true,
         external: ['vite', 'fs', 'path', 'url'],
     },
 ]);

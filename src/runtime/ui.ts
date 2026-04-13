@@ -1,13 +1,14 @@
-import { CONFIG } from './config';
+import { getConfig } from './config';
 import { getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
+import { repl } from './repl';
 import { THEME_CONFIG, cycleTheme, initThemeIndex } from './theme';
 import { LogType } from './types';
 
 let container: HTMLElement | null = null;
 let logsContainer: HTMLElement | null = null;
 let isVisible = false;
-let consoleHeight = CONFIG.defaultHeight;
+let consoleHeight = getConfig().defaultHeight;
 
 /**
  * Toggles console visibility
@@ -152,12 +153,23 @@ export function addLog(args: any[], type: LogType = 'info') {
 
     entry.appendChild(timestamp);
     entry.appendChild(content);
-    logsContainer.appendChild(entry);
 
-    // Limit log count
-    while (logsContainer.children.length > CONFIG.maxLogs) {
-        if (logsContainer.firstChild) {
-            logsContainer.removeChild(logsContainer.firstChild);
+    // Insert before REPL if it exists
+    const repl = logsContainer.querySelector('.virtual-console-repl');
+    if (repl) {
+        logsContainer.insertBefore(entry, repl);
+    } else {
+        logsContainer.appendChild(entry);
+    }
+
+    // Limit log count (excluding REPL)
+    const maxLogs = getConfig().maxLogs;
+    // Count only log entries
+    const logEntries = logsContainer.querySelectorAll('.virtual-console-log-entry');
+    if (logEntries.length > maxLogs) {
+        // Remove the first one
+        if (logEntries[0]) {
+            logsContainer.removeChild(logEntries[0]);
         }
     }
 
@@ -185,9 +197,10 @@ function setupResize(handle: HTMLElement) {
         if (!isResizing) return;
         const currentY = e.type === 'touchmove' ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
         const deltaY = startY - currentY;
+        const config = getConfig();
         const newHeight = Math.max(
-            CONFIG.minHeight,
-            Math.min(CONFIG.maxHeight, startHeight + deltaY)
+            config.minHeight,
+            Math.min(config.maxHeight, startHeight + deltaY)
         );
         consoleHeight = newHeight;
         if (container) {
@@ -266,9 +279,197 @@ export function createConsole() {
     container.appendChild(resizeHandle);
     container.appendChild(header);
     container.appendChild(logsContainer);
-    document.body.appendChild(container);
+
+    // REPL Container
+    const replContainer = document.createElement('div');
+    replContainer.className = 'virtual-console-repl';
+
+    // Suggestions Popup
+    const suggestionsBox = document.createElement('div');
+    suggestionsBox.className = 'virtual-console-suggestions';
+    suggestionsBox.style.display = 'none';
+    replContainer.appendChild(suggestionsBox);
+
+    // Input Wrapper (for ghost text)
+    const inputWrapper = document.createElement('div');
+    inputWrapper.className = 'virtual-console-input-wrapper';
+
+    // Input Field
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'virtual-console-input';
+    input.placeholder = 'Run command...';
+    input.spellcheck = false;
+    input.autocapitalize = 'off';
+    input.autocomplete = 'off';
+    inputWrapper.appendChild(input);
+
+    // Ghost Text (Pre-evaluation result)
+    const ghostText = document.createElement('div');
+    ghostText.className = 'virtual-console-ghost';
+    inputWrapper.appendChild(ghostText);
+
+    // Run Button
+    const runBtn = document.createElement('button');
+    runBtn.className = 'virtual-console-run-btn';
+    runBtn.textContent = 'Run';
+
+    replContainer.appendChild(inputWrapper);
+    replContainer.appendChild(runBtn);
+
+    // Append REPL to logs container (as the last item)
+    logsContainer.appendChild(replContainer);
+
+    container.appendChild(resizeHandle);
+    container.appendChild(header);
+    container.appendChild(logsContainer);
+
+    const config = getConfig();
+    if (config.targetElement) {
+        config.targetElement.appendChild(container);
+        // If mounting to a custom element, we might want absolute positioning relative to it
+        // But for now, we keep the default styles (fixed) unless overridden by CSS
+        // Actually, if it's a custom container, 'absolute' is usually better if the container is relative
+        // Let's force absolute if target is not body?
+        if (config.targetElement !== document.body) {
+            container.style.position = 'absolute';
+        }
+    } else {
+        document.body.appendChild(container);
+    }
 
     setupResize(resizeHandle);
+    setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);
 
-    addLog(['Debug Console initialized'], 'info'); // Changed from success to info as success isn't a standard log type
+    addLog(['Debug Console initialized'], 'info');
+}
+
+
+
+function setupREPL(
+    input: HTMLInputElement,
+    runBtn: HTMLButtonElement,
+    ghostText: HTMLElement,
+    suggestionsBox: HTMLElement,
+    replContainer: HTMLElement
+) {
+    // Focus input when clicking anywhere in the REPL area
+    replContainer.addEventListener('click', (e) => {
+        // Don't focus if clicking button or suggestions
+        if (e.target === replContainer || e.target === replContainer.querySelector('.virtual-console-input-wrapper')) {
+            input.focus();
+        }
+    });
+
+    const execute = () => {
+        const cmd = input.value;
+        if (cmd) {
+            repl.execute(cmd);
+            input.value = '';
+            ghostText.textContent = '';
+            suggestionsBox.style.display = 'none';
+
+            // Scroll to bottom to show new log and REPL
+            if (logsContainer) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+        }
+    };
+
+    runBtn.onclick = execute;
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            execute();
+        } else if (e.key === 'ArrowUp') {
+            const prev = repl.getHistoryPrevious();
+            if (prev !== null) {
+                input.value = prev;
+                // Move cursor to end
+                setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            const next = repl.getHistoryNext();
+            if (next !== null) {
+                input.value = next;
+            }
+            e.preventDefault();
+        } else if (e.key === 'Tab') {
+            // Accept first suggestion
+            if (suggestionsBox.style.display !== 'none' && suggestionsBox.firstChild) {
+                const suggestion = suggestionsBox.firstChild.textContent;
+                if (suggestion) {
+                    // Replace the last part of input with suggestion
+                    const lastDot = input.value.lastIndexOf('.');
+                    if (lastDot !== -1) {
+                        input.value = input.value.substring(0, lastDot + 1) + suggestion;
+                    } else {
+                        input.value = suggestion;
+                    }
+                    suggestionsBox.style.display = 'none';
+                    // Trigger input event to update ghost text
+                    input.dispatchEvent(new Event('input'));
+                }
+            }
+            e.preventDefault();
+        }
+    });
+
+    input.addEventListener('input', () => {
+        const val = input.value;
+
+        // Pre-evaluation
+        const result = repl.preEvaluate(val);
+        if (result !== undefined) {
+            ghostText.innerHTML = '';
+            // We want to show the result as a preview. 
+            // Reuse createObjectViewer but maybe simplified?
+            // Or just text content for simple primitives?
+            // createObjectViewer returns an element.
+            const viewer = createObjectViewer(result);
+            ghostText.appendChild(viewer);
+        } else {
+            ghostText.textContent = '';
+        }
+
+        // Autocompletion
+        const suggestions = repl.getSuggestions(val);
+        if (suggestions.length > 0) {
+            suggestionsBox.innerHTML = '';
+            suggestions.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'vc-suggestion';
+                div.textContent = s;
+                div.onclick = () => {
+                    // Replace logic similar to Tab
+                    const lastDot = input.value.lastIndexOf('.');
+                    if (lastDot !== -1) {
+                        input.value = input.value.substring(0, lastDot + 1) + s;
+                    } else {
+                        input.value = s;
+                    }
+                    suggestionsBox.style.display = 'none';
+                    input.focus();
+                    // Trigger input event to update ghost text
+                    input.dispatchEvent(new Event('input'));
+                };
+                suggestionsBox.appendChild(div);
+            });
+            suggestionsBox.style.display = 'block';
+
+            // Position suggestions above input
+            suggestionsBox.style.bottom = '100%';
+            // Left is handled by CSS (16px)
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions on blur (delayed to allow click)
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            suggestionsBox.style.display = 'none';
+        }, 200);
+    });
 }

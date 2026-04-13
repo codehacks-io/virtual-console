@@ -12,12 +12,12 @@ A bullet-proof, mobile-friendly virtual console for debugging web applications. 
 
 ## Installation
 
+### Installation
+
 ```bash
-pnpm add -D virtual-console
+pnpm add -D @codehacks/virtual-console
 # or
-npm install -D virtual-console
-# or
-yarn add -D virtual-console
+npm install -D @codehacks/virtual-console
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ Add the plugin to your `vite.config.ts`:
 
 ```typescript
 import { defineConfig } from 'vite';
-import { virtualConsoleVitePlugin } from 'virtual-console';
+import { virtualConsoleVitePlugin } from '@codehacks/virtual-console';
 
 export default defineConfig({
   plugins: [

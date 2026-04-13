@@ -1,12 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 import type { Plugin } from 'vite';
-
-// Get the directory of this plugin file
-// When built, this file is in dist/plugin.js, so __dirname is dist/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import type { VirtualConsoleConfig } from '../../runtime/types';
 
 /**
  * Available theme names for the virtual console
@@ -25,6 +20,10 @@ export interface InjectVirtualConsoleOptions {
      * All themes will be available for runtime switching via the theme button
      */
     themes: VirtualConsoleTheme[];
+    /**
+     * Optional runtime configuration
+     */
+    options?: Partial<Omit<VirtualConsoleConfig, 'targetElement'>>;
 }
 
 /**
@@ -62,28 +61,28 @@ export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): 
             order: 'post',
             handler(html) {
                 try {
-                    // Paths are relative to dist/ where this plugin resides after build
-                    const stylesDir = resolve(__dirname, 'styles');
-
-                    // Read base CSS (theme-independent styles)
-                    const baseCssPath = resolve(stylesDir, 'base.css');
+                    // Paths are relative to dist/plugin/ where this plugin resides after build
+                    // We need to go up one level to dist/runtime/
+                    const distRuntimeDir = resolve(__dirname, '../runtime');
 
                     // Logic to handle dev (src) vs prod (dist) paths
-                    let realStylesDir = stylesDir;
-                    // The runtime is built to core.iife.js
-                    let realJsPath = resolve(__dirname, 'core.iife.js');
+                    let realStylesDir = resolve(distRuntimeDir, 'styles');
+                    let realJsPath = resolve(distRuntimeDir, 'core.iife.js');
 
-                    if (!existsSync(baseCssPath)) {
-                        // Try src path for styles if not in dist
-                        // This happens if running via ts-node in dev without full build, 
-                        // BUT we really depend on the built runtime.
-                        // __dirname is src/plugins/vite, so we need to go up 3 levels to get to root/src
+                    // Check if we are running from source (e.g. ts-node/vite dev)
+                    // If dist/runtime/styles/base.css doesn't exist, we might be in src
+                    if (!existsSync(resolve(realStylesDir, 'base.css'))) {
+                        // In source: __dirname is src/plugins/vite
+                        // We need to go to src/runtime/styles
                         const srcStylesDir = resolve(__dirname, '../../../src/runtime/styles');
+
                         if (existsSync(resolve(srcStylesDir, 'base.css'))) {
                             realStylesDir = srcStylesDir;
-                            // For JS, we still need the built IIFE. 
+
+                            // For JS, we still need the built IIFE because we don't compile on the fly here.
                             // We assume the user has run 'pnpm build' or at least built the runtime.
-                            const distJsPath = resolve(__dirname, '../../../dist/core.iife.js');
+                            // From src/plugins/vite, dist is ../../../dist
+                            const distJsPath = resolve(__dirname, '../../../dist/runtime/core.iife.js');
                             realJsPath = distJsPath;
                         }
                     }
@@ -109,9 +108,12 @@ export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): 
                     const js = readFileSync(realJsPath, 'utf-8');
 
                     const themeConfig = `
-            window.__VIRTUAL_CONSOLE_CONFIG__ = {
-              availableThemes: ${JSON.stringify(options.themes)},
-              defaultTheme: '${options.themes[0]}'
+            window.__VIRTUAL_CONSOLE_GLOBAL__ = {
+              theme: {
+                availableThemes: ${JSON.stringify(options.themes)},
+                defaultTheme: '${options.themes[0]}'
+              },
+              options: ${JSON.stringify(options.options || {})}
             };
           `;
 
