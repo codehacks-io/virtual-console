@@ -34,7 +34,6 @@ function clearLogs() {
     if (repl) {
         logsContainer.appendChild(repl);
     }
-    addLog(['Console cleared'], 'info');
 }
 
 /**
