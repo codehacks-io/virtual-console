@@ -34,3 +34,6 @@ jobs:
 
     - name: Build Playground
       run: pnpm --filter playground build
+
+    - name: Build Examples
+      run: pnpm build:examples

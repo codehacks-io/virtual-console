@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+
+main {
+    padding: 20px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}

@@ -1,32 +1,44 @@
-import { getConfig, setConfig } from './config';
-import { createConsole, toggleConsole } from './ui';
+import { getConfig, resetConfig, setConfig } from './config';
+import { createConsole, destroyConsole, toggleConsole } from './ui';
 import { interceptConsole, setupErrorListeners } from './interceptor';
-import { VirtualConsoleConfig } from './types';
+import { setThemeConfig } from './theme';
+import type { ThemeConfig, VirtualConsoleConfig, VirtualConsoleGlobalState, VirtualConsoleInstance } from './types';
 
 let longPressTimer: any = null;
 let currentTouchCount = 0;
+
+export const virtualConsoleGlobalStateKey = '__VIRTUAL_CONSOLE_STATE__';
+
+export function getVirtualConsoleGlobalState(): VirtualConsoleGlobalState {
+    window[virtualConsoleGlobalStateKey] ??= {};
+    return window[virtualConsoleGlobalStateKey];
+}
 
 /**
  * Sets up activation gestures
  */
 function setupActivation() {
-    // Keyboard shortcut: Shift+C (or configured key)
-    document.addEventListener('keydown', (e) => {
-        if (e.shiftKey && e.code === getConfig().keyboardShortcut) {
-            e.preventDefault();
-            toggleConsole();
-        }
-    });
-
-    // Multi-finger long press
-    document.addEventListener('touchstart', (e) => {
-        currentTouchCount = e.touches.length;
-
-        // Clear existing timer when touch count changes
+    const clearLongPressTimer = () => {
         if (longPressTimer) {
             clearTimeout(longPressTimer);
             longPressTimer = null;
         }
+    };
+
+    // Keyboard shortcut: Shift+C (or configured key)
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.shiftKey && e.code === getConfig().keyboardShortcut) {
+            e.preventDefault();
+            toggleConsole();
+        }
+    };
+
+    // Multi-finger long press
+    const onTouchStart = (e: TouchEvent) => {
+        currentTouchCount = e.touches.length;
+
+        // Clear existing timer when touch count changes
+        clearLongPressTimer();
 
         // Start timer if we have the required finger count
         const config = getConfig();
@@ -39,47 +51,86 @@ function setupActivation() {
                 longPressTimer = null;
             }, config.longPressDuration);
         }
-    }, { passive: true });
+    };
 
-    document.addEventListener('touchend', (e) => {
+    const onTouchEnd = (e: TouchEvent) => {
         currentTouchCount = e.touches.length;
 
         // Cancel timer when any finger lifts
-        if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
-        }
+        clearLongPressTimer();
 
         // Reset touch count when all fingers lift
         if (currentTouchCount === 0) {
             currentTouchCount = 0;
         }
-    }, { passive: true });
+    };
 
-    document.addEventListener('touchmove', (e) => {
+    const onTouchMove = (e: TouchEvent) => {
         currentTouchCount = e.touches.length;
 
         // Cancel timer if fingers move
-        if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
-        }
-    }, { passive: true });
+        clearLongPressTimer();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: true });
+
+    return () => {
+        clearLongPressTimer();
+        currentTouchCount = 0;
+        document.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('touchstart', onTouchStart);
+        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('touchmove', onTouchMove);
+    };
 }
 
-// Initialize
-export function mount(options?: Partial<VirtualConsoleConfig>) {
-    // Prevent multiple mounts
-    if (window.__VIRTUAL_CONSOLE_MOUNTED__) return;
-    window.__VIRTUAL_CONSOLE_MOUNTED__ = true;
+export function installVirtualConsole(
+    options?: Partial<VirtualConsoleConfig>,
+    theme?: ThemeConfig
+): VirtualConsoleInstance {
+    const state = getVirtualConsoleGlobalState();
 
+    state.instance?.destroy();
+
+    resetConfig();
     if (options) {
         setConfig(options);
     }
 
-    console.log("Injecting virtual console...");
-    createConsole();
-    interceptConsole();
-    setupErrorListeners();
-    setupActivation();
+    setThemeConfig(theme || window.__VIRTUAL_CONSOLE_GLOBAL__?.theme);
+
+    const cleanupCallbacks = [
+        createConsole(),
+        interceptConsole(),
+        setupErrorListeners(),
+        setupActivation()
+    ];
+
+    const instance: VirtualConsoleInstance = {
+        destroy() {
+            cleanupCallbacks.slice().reverse().forEach((cleanup) => cleanup());
+            destroyConsole();
+            resetConfig();
+            setThemeConfig();
+            delete state.instance;
+            window.__VIRTUAL_CONSOLE_MOUNTED__ = false;
+        }
+    };
+
+    state.instance = instance;
+    state.options = options;
+    state.theme = theme || window.__VIRTUAL_CONSOLE_GLOBAL__?.theme;
+    window.__VIRTUAL_CONSOLE_MOUNTED__ = true;
+
+    console.info('Virtual Console initialized');
+
+    return instance;
+}
+
+// Initialize
+export function mount(options?: Partial<VirtualConsoleConfig>) {
+    return installVirtualConsole(options);
 }

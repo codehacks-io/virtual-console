@@ -1,0 +1,25 @@
+{
+    "name": "@codehacks/react-vite-local-import",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "preview": "vite preview",
+        "typecheck": "tsc -b --noEmit",
+        "clean": "rm -rf dist .vite"
+    },
+    "dependencies": {
+        "@codehacks/virtual-console": "workspace:*",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.37",
+        "@types/react-dom": "^18.2.15",
+        "@vitejs/plugin-react": "^4.2.0",
+        "typescript": "^5.2.2",
+        "vite": "^6.4.2"
+    }
+}

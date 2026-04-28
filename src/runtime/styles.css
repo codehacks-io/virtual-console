@@ -1,0 +1,6 @@
+@import './styles/base.css';
+@import './styles/themes/vscode.css';
+@import './styles/themes/chrome-light.css';
+@import './styles/themes/dracula.css';
+@import './styles/themes/nord.css';
+@import './styles/themes/tokyo.css';

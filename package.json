@@ -3,6 +3,11 @@
     "version": "0.1.0",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
+    "sideEffects": [
+        "./dist/plugin/client.js",
+        "./dist/runtime/styles.css",
+        "./dist/runtime/styles/**"
+    ],
     "main": "./dist/runtime/index.cjs",
     "module": "./dist/runtime/index.js",
     "types": "./dist/runtime/index.d.ts",
@@ -16,15 +21,29 @@
             "types": "./dist/plugin/index.d.ts",
             "import": "./dist/plugin/index.js",
             "require": "./dist/plugin/index.cjs"
+        },
+        "./plugins/vite/client": {
+            "types": "./dist/plugin/client.d.ts",
+            "import": "./dist/plugin/client.js"
+        },
+        "./styles.css": {
+            "default": "./dist/runtime/styles.css"
         }
     },
     "files": [
         "dist"
     ],
     "scripts": {
-        "dev": "pnpm --filter playground dev",
-        "build": "tsup && mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/",
+        "dev": "tsup --watch --onSuccess \"mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/ && cp src/runtime/styles.css dist/runtime/styles.css\"",
+        "dev:local-import": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-import dev",
+        "dev:local-plugin": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-plugin dev",
+        "dev:packaged-import": "pnpm --dir examples/react-vite-packaged-import dev",
+        "dev:packaged-plugin": "pnpm --dir examples/react-vite-packaged-plugin dev",
+        "build": "rm -rf dist && tsup && mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/ && cp src/runtime/styles.css dist/runtime/styles.css",
+        "build:examples": "pnpm --filter @codehacks/react-vite-local-import build && pnpm --filter @codehacks/react-vite-local-plugin build",
+        "build:packaged-examples": "pnpm --dir examples/react-vite-packaged-import build && pnpm --dir examples/react-vite-packaged-plugin build",
         "lint": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "prepublishOnly": "pnpm build"
     },
     "keywords": [
@@ -38,6 +57,14 @@
     ],
     "author": "",
     "license": "MIT",
+    "peerDependencies": {
+        "vite": ">=5.0.0 <8.0.0"
+    },
+    "peerDependenciesMeta": {
+        "vite": {
+            "optional": true
+        }
+    },
     "devDependencies": {
         "@types/node": "^20.10.0",
         "tsup": "^8.0.1",
