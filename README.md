@@ -1,38 +1,54 @@
 # Virtual Console
 
-A bullet-proof, mobile-friendly virtual console for debugging web applications. It injects itself as the very first script to catch errors even if your main application fails to load.
+A mobile-friendly virtual console for debugging web applications. Use it through an explicit runtime import or through the Vite plugin when you want early injection before your app mounts.
 
 ## Features
 
-- 🚀 **Bullet-proof Injection**: Injected at the top of `<body>` to catch early errors.
 - 📱 **Mobile Friendly**: Toggle with 2-finger long press or Shift+C.
 - 🔍 **Object Inspector**: Interactive viewer for Objects, Arrays, Maps, Sets, and more.
 - 🎨 **Themable**: Comes with multiple themes (VSCode, Chrome Light, Dracula, Nord, Tokyo).
-- ⚡ **Vite Plugin**: Easy integration with Vite.
-
-## Installation
+- ⚡ **Vite Plugin**: Optional early injection for Vite apps.
 
 ### Installation
 
 ```bash
-pnpm add -D @codehacks/virtual-console
+pnpm add @codehacks/virtual-console
 # or
-npm install -D @codehacks/virtual-console
+npm install @codehacks/virtual-console
 ```
 
 ## Usage
 
-Add the plugin to your `vite.config.ts`:
+### Explicit Import
+
+```typescript
+import { installVirtualConsole } from '@codehacks/virtual-console';
+import '@codehacks/virtual-console/styles.css';
+
+const virtualConsole = installVirtualConsole({
+  maxLogs: 100
+});
+
+// Later, from your framework cleanup lifecycle:
+virtualConsole.destroy();
+```
+
+### Vite Plugin
+
+Add the plugin to your `vite.config.ts` when you want the console injected before your app bundle runs:
 
 ```typescript
 import { defineConfig } from 'vite';
-import { virtualConsoleVitePlugin } from '@codehacks/virtual-console';
+import { virtualConsoleVitePlugin } from '@codehacks/virtual-console/plugins/vite';
 
 export default defineConfig({
   plugins: [
     virtualConsoleVitePlugin({
       // Specify available themes. The first one will be the default.
-      themes: ['vscode', 'chrome-light', 'dracula']
+      themes: ['vscode', 'chrome-light', 'dracula'],
+      options: {
+        maxLogs: 100
+      }
     })
   ]
 });
@@ -61,8 +77,12 @@ pnpm install
 # Build the library
 pnpm build
 
-# Run the playground
-pnpm dev
+# Run local workspace examples
+pnpm dev:local-import
+pnpm dev:local-plugin
+
+# Build local workspace examples
+pnpm build:examples
 ```
 
 ## License
