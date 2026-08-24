@@ -1,7 +1,7 @@
 import type { ThemeConfig } from './types';
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
-    availableThemes: ['vscode'],
+    availableThemes: ['vscode', 'chrome-light', 'dracula', 'nord', 'tokyo'],
     defaultTheme: 'vscode'
 };
 
