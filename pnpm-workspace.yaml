@@ -2,3 +2,7 @@ packages:
   - '.'
   - 'examples/react-vite-local-import'
   - 'examples/react-vite-local-plugin'
+allowBuilds:
+  esbuild: true
+onlyBuiltDependencies:
+  - esbuild
