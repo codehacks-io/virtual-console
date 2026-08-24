@@ -112,6 +112,7 @@ dist
 # Editor
 .idea
 .vscode
+.claude
 *.suo
 *.ntvs
 *.njsproj
