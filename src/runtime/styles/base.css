@@ -114,6 +114,14 @@
   height: 16px;
 }
 
+/* Shared sizing for every icon referencing the sprite in icons.ts */
+.vc-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
 .virtual-console-button:hover {
   background: var(--vc-button-hover-bg, rgba(128, 128, 128, 0.15));
   opacity: 1;
@@ -211,17 +219,6 @@
   /* Space for icon */
 }
 
-.virtual-console-log-error::before {
-  content: '⊗';
-  /* Error icon */
-  position: absolute;
-  left: 4px;
-  top: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--vc-log-error);
-}
-
 .virtual-console-log-success {
   color: var(--vc-log-success);
 }
@@ -235,53 +232,40 @@
   /* Space for icon */
 }
 
-.virtual-console-log-warn::before {
-  content: '⚠';
-  /* Warning icon */
-  position: absolute;
-  left: 4px;
-  top: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--vc-log-warn);
-}
-
 .virtual-console-log-command {
   color: var(--vc-text);
   font-weight: bold;
   position: relative;
   padding-left: 16px;
-  /* Space for indicator */
-}
-
-.virtual-console-log-command::before {
-  content: '>';
-  position: absolute;
-  left: 4px;
-  top: 4px;
-  color: var(--vc-button-text);
-  font-size: 10px;
-  opacity: 0.8;
-  line-height: 1;
+  /* Space for icon */
 }
 
 .virtual-console-log-result {
   color: var(--vc-text);
   position: relative;
   padding-left: 16px;
-  /* Space for indicator */
+  /* Space for icon */
   border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 
-.virtual-console-log-result::before {
-  content: '<';
+.virtual-console-log-icon {
   position: absolute;
   left: 4px;
-  top: 5px;
+  top: 4px;
+}
+
+.virtual-console-log-error .virtual-console-log-icon {
+  color: var(--vc-log-error);
+}
+
+.virtual-console-log-warn .virtual-console-log-icon {
+  color: var(--vc-log-warn);
+}
+
+.virtual-console-log-command .virtual-console-log-icon,
+.virtual-console-log-result .virtual-console-log-icon {
   color: var(--vc-button-text);
-  font-size: 10px;
-  opacity: 0.8;
-  line-height: 1;
+  opacity: 0.85;
 }
 
 .virtual-console-log-command .virtual-console-timestamp,
@@ -497,18 +481,21 @@
   /* Space for prompt */
 }
 
-/* Prompt symbol */
-.virtual-console-input-wrapper::before {
-  content: '>';
+/* Prompt icon - dim until the input actually has content, like a real
+   terminal/DevTools prompt rather than a static decoration. */
+.virtual-console-prompt-icon {
   position: absolute;
   left: 4px;
-  top: 2px;
+  top: 3px;
   color: var(--vc-button-text);
-  font-weight: bold;
-  opacity: 0.7;
+  opacity: 0.4;
   pointer-events: none;
-  font-size: 10px;
   z-index: 3;
+  transition: opacity 0.15s ease;
+}
+
+.virtual-console-input:not(:placeholder-shown) ~ .virtual-console-prompt-icon {
+  opacity: 1;
 }
 
 /* Renders highlighted code behind the transparent input, aligned to it */
@@ -582,12 +569,14 @@
   padding-left: 0;
 }
 
-/* Result arrow for ghost text - only if not empty */
-.virtual-console-ghost:not(:empty)::before {
-  content: '<';
+/* Preview icon - only present in the DOM while there's a value to show
+   (see ui.ts). Dimmer than the finalized result icon (.virtual-console-log-icon,
+   opacity 0.85) since this is a live, not-yet-committed preview. */
+.virtual-console-ghost-icon {
   position: absolute;
   left: -14px;
-  opacity: 0.5;
+  top: 2px;
+  color: var(--vc-button-text);
 }
 
 .virtual-console-suggestions {
