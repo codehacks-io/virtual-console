@@ -147,14 +147,14 @@ pnpm typecheck
 pnpm test
 
 # Run local workspace examples
-pnpm dev:local-import
-pnpm dev:local-plugin
+pnpm dev:import:local
+pnpm dev:vite-plugin:local
 
 # Build local workspace examples
-pnpm build:examples
+pnpm build:local
 ```
 
-See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `packaged-*` commands.
+See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
 
 ## License
 

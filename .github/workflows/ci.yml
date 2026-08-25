@@ -41,5 +41,5 @@ jobs:
     - name: Build
       run: pnpm build
 
-    - name: Build Examples
-      run: pnpm build:examples
+    - name: Build Local Examples
+      run: pnpm build:local
