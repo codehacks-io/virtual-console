@@ -44,8 +44,10 @@ export default defineConfig([
         },
         format: ['esm'],
         outDir: 'dist/plugin',
-        dts: true,
+        // No public exports; never imported directly by consumers.
+        dts: false,
         clean: false,
-        external: ['vite'],
+        // Must stay external - see the comment on client.ts's import.
+        external: ['vite', '@codehacks/virtual-console'],
     },
 ]);

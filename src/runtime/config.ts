@@ -26,8 +26,12 @@ export const DEFAULT_CONFIG: VirtualConsoleConfig = {
 
 let activeConfig: VirtualConsoleConfig = { ...DEFAULT_CONFIG };
 
+/**
+ * Returns the active config. Shallow copy only - do not mutate the result
+ * or any nested value (e.g. keyboardShortcut); treat it as read-only.
+ */
 export function getConfig(): VirtualConsoleConfig {
-    return activeConfig;
+    return { ...activeConfig };
 }
 
 export function setConfig(options: Partial<VirtualConsoleConfig>) {

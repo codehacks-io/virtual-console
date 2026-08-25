@@ -4,7 +4,12 @@
         "noEmit": true,
         "types": [
             "vite/client"
-        ]
+        ],
+        // Resolves client.ts's self-import to source for typechecking,
+        // since dist/ won't exist yet on a fresh checkout.
+        "paths": {
+            "@codehacks/virtual-console": ["./src/runtime/index.ts"]
+        }
     },
     "include": [
         "src",

@@ -1,14 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { installVirtualConsole } from '@codehacks/virtual-console';
+import { formatKeyboardShortcut, getConfig, installVirtualConsole } from '@codehacks/virtual-console';
 import '@codehacks/virtual-console/styles.css';
 import './styles.css';
 
 function App() {
+    const [activationHint, setActivationHint] = useState<{ shortcut: string | null; fingers: number } | null>(null);
+
     useEffect(() => {
         const virtualConsole = installVirtualConsole({
             maxLogs: 50
         });
+
+        const config = getConfig();
+        setActivationHint({ shortcut: formatKeyboardShortcut(config.keyboardShortcut), fingers: config.longPressFingers });
 
         return () => virtualConsole.destroy();
     }, []);
@@ -17,7 +22,12 @@ function App() {
         <main>
             <h1>Published Package Import</h1>
             <p>This app imports the virtual console from the npm package, not the local workspace.</p>
-            <p>Press <code>Shift+C</code> or long-press with two fingers to toggle the console.</p>
+            {activationHint && (
+                <p>
+                    {activationHint.shortcut ? <>Press <code>{activationHint.shortcut}</code> or long-press</> : 'Long-press'}
+                    {' '}with {activationHint.fingers} finger{activationHint.fingers === 1 ? '' : 's'} to toggle the console.
+                </p>
+            )}
             <div className="actions">
                 <button onClick={() => console.log('Packaged import log', { source: 'npm' })}>Log object</button>
                 <button onClick={() => console.warn('Packaged import warning')}>Warn</button>

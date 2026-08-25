@@ -23,7 +23,6 @@
             "require": "./dist/plugin/index.cjs"
         },
         "./plugins/vite/client": {
-            "types": "./dist/plugin/client.d.ts",
             "import": "./dist/plugin/client.js"
         },
         "./styles.css": {
