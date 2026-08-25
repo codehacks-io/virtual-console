@@ -109,6 +109,11 @@ dist
 # Mac
 .DS_Store
 
+# The "packaged" examples install @codehacks/virtual-console@latest as a
+# standalone (non-workspace) project, so their lockfile is meant to float
+# with whatever is currently published, not be pinned in git.
+examples/packaged/*/pnpm-lock.yaml
+
 # Editor
 .idea
 .vscode

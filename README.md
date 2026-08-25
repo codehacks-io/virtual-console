@@ -96,6 +96,8 @@ pnpm dev:local-plugin
 pnpm build:examples
 ```
 
+See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `packaged-*` commands.
+
 ## License
 
 MIT

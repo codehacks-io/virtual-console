@@ -27,11 +27,11 @@ importers:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@26.3.0)(jsdom@30.0.1)(vite@6.4.2(@types/node@26.3.0))
 
-  examples/react-vite-local-import:
+  examples/local/react-vite-import:
     dependencies:
       '@codehacks/virtual-console':
         specifier: workspace:*
-        version: link:../..
+        version: link:../../..
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -55,11 +55,11 @@ importers:
         specifier: ^6.4.2
         version: 6.4.2(@types/node@26.3.0)
 
-  examples/react-vite-local-plugin:
+  examples/local/react-vite-plugin:
     dependencies:
       '@codehacks/virtual-console':
         specifier: workspace:*
-        version: link:../..
+        version: link:../../..
       react:
         specifier: ^18.2.0
         version: 18.3.1

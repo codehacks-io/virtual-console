@@ -1,7 +1,6 @@
 packages:
   - '.'
-  - 'examples/react-vite-local-import'
-  - 'examples/react-vite-local-plugin'
+  - 'examples/local/*'
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
