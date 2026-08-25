@@ -2,6 +2,29 @@ import { getConfig } from './config';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { addLog } from './ui';
 
+/**
+ * Evaluates REPL input in the global scope. A leading `{` is ambiguous in
+ * JS: `{a: 1}` parses as a block statement (with `a:` read as a label),
+ * not an object literal, so `eval` throws "Unexpected token ':'". Chrome's
+ * console works around this by wrapping such input in parentheses to force
+ * expression context; we do the same, falling back to the raw source if
+ * that wrapping itself doesn't parse (a genuine block statement).
+ */
+function evalReplCode(code: string): any {
+    const trimmed = code.trim();
+    if (trimmed.startsWith('{')) {
+        try {
+            return (0, eval)(`(${code})`);
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                return (0, eval)(code);
+            }
+            throw err;
+        }
+    }
+    return (0, eval)(code);
+}
+
 export class REPL {
     private history: string[] = [];
     private historyIndex: number = -1;
@@ -30,8 +53,7 @@ export class REPL {
         addLog([command], 'command');
 
         try {
-            // Use indirect eval to execute in global scope
-            const result = (0, eval)(command);
+            const result = evalReplCode(command);
             addLog([result], 'result');
             // The user requested syntax highlighting for output. 
             // addLog uses createObjectViewer which handles syntax highlighting for primitives and objects.
@@ -100,7 +122,7 @@ export class REPL {
             // But "delete window.foo" is also bad.
             if (trimmed.includes('delete ')) return undefined;
 
-            return (0, eval)(trimmed);
+            return evalReplCode(trimmed);
         } catch {
             return undefined;
         }
