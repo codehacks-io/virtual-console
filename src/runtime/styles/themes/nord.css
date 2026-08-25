@@ -36,6 +36,9 @@
   --vc-undefined: #4c566a;
   --vc-function: #88c0d0;
   --vc-symbol: #8fbcbb;
+  --vc-keyword: #81a1c1;
+  --vc-operator: #81a1c1;
+  --vc-comment: #4c566a;
 
   --vc-object-header: #d8dee9;
   --vc-expand-icon: #4c566a;

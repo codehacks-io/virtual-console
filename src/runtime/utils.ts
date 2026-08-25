@@ -40,3 +40,14 @@ export function getSize(value: any): number | null {
     }
     return null;
 }
+
+/**
+ * Debounces a function, delaying invocation until `wait` ms after the last call
+ */
+export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout>;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+}
