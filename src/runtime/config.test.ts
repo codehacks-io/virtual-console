@@ -31,4 +31,31 @@ describe('config', () => {
 
         expect(getConfig()).toEqual(DEFAULT_CONFIG);
     });
+
+    it('defaults the keyboard shortcut to Shift+C', () => {
+        expect(DEFAULT_CONFIG.keyboardShortcut).toEqual({ code: 'KeyC', shiftKey: true });
+    });
+
+    it('allows disabling the keyboard shortcut entirely', () => {
+        setConfig({ keyboardShortcut: null });
+
+        expect(getConfig().keyboardShortcut).toBeNull();
+    });
+
+    it('defaults the REPL to enabled with a 50-command history limit', () => {
+        expect(DEFAULT_CONFIG.replEnabled).toBe(true);
+        expect(DEFAULT_CONFIG.replHistoryLimit).toBe(50);
+    });
+
+    it('allows disabling the REPL', () => {
+        setConfig({ replEnabled: false });
+
+        expect(getConfig().replEnabled).toBe(false);
+    });
+
+    it('defaults width bounds alongside the existing height bounds', () => {
+        expect(DEFAULT_CONFIG.defaultWidth).toBe(400);
+        expect(DEFAULT_CONFIG.minWidth).toBe(200);
+        expect(DEFAULT_CONFIG.maxWidth).toBeGreaterThan(DEFAULT_CONFIG.minWidth);
+    });
 });

@@ -41,6 +41,60 @@ describe('installVirtualConsole', () => {
         expect(container.classList.contains('virtual-console-visible')).toBe(false);
     });
 
+    it('does not toggle on an exact-modifier mismatch (e.g. an extra Ctrl held down)', () => {
+        instance = installVirtualConsole();
+        const container = document.querySelector('.virtual-console-container') as HTMLElement;
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyC', shiftKey: true, ctrlKey: true }));
+
+        expect(container.classList.contains('virtual-console-visible')).toBe(false);
+    });
+
+    it('does not toggle while focus is in an editable field, so it cannot hijack the host app', () => {
+        instance = installVirtualConsole();
+        const container = document.querySelector('.virtual-console-container') as HTMLElement;
+        const appInput = document.createElement('input');
+        document.body.appendChild(appInput);
+        appInput.focus();
+
+        appInput.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyC', shiftKey: true, bubbles: true }));
+
+        expect(container.classList.contains('virtual-console-visible')).toBe(false);
+        appInput.remove();
+    });
+
+    it('respects a fully custom keyboard shortcut', () => {
+        instance = installVirtualConsole({ keyboardShortcut: { code: 'F8', ctrlKey: true } });
+        const container = document.querySelector('.virtual-console-container') as HTMLElement;
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyC', shiftKey: true }));
+        expect(container.classList.contains('virtual-console-visible')).toBe(false);
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F8', ctrlKey: true }));
+        expect(container.classList.contains('virtual-console-visible')).toBe(true);
+    });
+
+    it('disables the keyboard shortcut entirely when set to null', () => {
+        instance = installVirtualConsole({ keyboardShortcut: null });
+        const container = document.querySelector('.virtual-console-container') as HTMLElement;
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyC', shiftKey: true }));
+
+        expect(container.classList.contains('virtual-console-visible')).toBe(false);
+    });
+
+    it('omits the REPL input when replEnabled is false', () => {
+        instance = installVirtualConsole({ replEnabled: false });
+
+        expect(document.querySelector('.virtual-console-repl')).toBeNull();
+    });
+
+    it('includes the REPL input by default', () => {
+        instance = installVirtualConsole();
+
+        expect(document.querySelector('.virtual-console-repl')).not.toBeNull();
+    });
+
     it('captures intercepted console.log calls as log entries', () => {
         instance = installVirtualConsole();
 

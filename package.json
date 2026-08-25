@@ -35,15 +35,26 @@
     ],
     "scripts": {
         "dev": "tsup --watch --onSuccess \"mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/ && cp src/runtime/styles.css dist/runtime/styles.css\"",
-        "dev:local-import": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-import dev",
-        "dev:local-plugin": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-plugin dev",
-        "install:packaged-examples": "pnpm --dir examples/packaged/react-vite-import install && pnpm --dir examples/packaged/react-vite-plugin install",
-        "dev:packaged-import": "pnpm --dir examples/packaged/react-vite-import install && pnpm --dir examples/packaged/react-vite-import dev",
-        "dev:packaged-plugin": "pnpm --dir examples/packaged/react-vite-plugin install && pnpm --dir examples/packaged/react-vite-plugin dev",
         "build": "rm -rf dist && tsup && mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/ && cp src/runtime/styles.css dist/runtime/styles.css",
-        "build:examples": "pnpm --filter @codehacks/react-vite-local-import build && pnpm --filter @codehacks/react-vite-local-plugin build",
-        "build:packaged-examples": "pnpm run install:packaged-examples && pnpm --dir examples/packaged/react-vite-import build && pnpm --dir examples/packaged/react-vite-plugin build",
-        "lint": "tsc --noEmit",
+
+        "dev:import:local": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-import dev",
+        "dev:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import dev",
+        "dev:vite-plugin:local": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-plugin dev",
+        "dev:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin dev",
+
+        "build:import:local": "pnpm build && pnpm --filter @codehacks/react-vite-local-import build",
+        "build:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import build",
+        "build:vite-plugin:local": "pnpm build && pnpm --filter @codehacks/react-vite-local-plugin build",
+        "build:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin build",
+        "build:local": "pnpm run build:import:local && pnpm run build:vite-plugin:local",
+        "build:published": "pnpm run build:import:published && pnpm run build:vite-plugin:published",
+
+        "install:import:published": "pnpm --dir examples/published/react-vite-import install",
+        "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
+        "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",
+
+        "lint": "oxlint .",
+        "lint:fix": "oxlint . --fix",
         "typecheck": "tsc --noEmit",
         "test": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
         "test:watch": "NODE_OPTIONS=--no-experimental-webstorage vitest",
@@ -82,6 +93,7 @@
     "devDependencies": {
         "@types/node": "^26.3.0",
         "jsdom": "^30.0.1",
+        "oxlint": "^1.80.0",
         "tsup": "^8.5.1",
         "typescript": "^5.9.3",
         "vite": "^8.2.2",

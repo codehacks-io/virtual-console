@@ -4,8 +4,33 @@ import { interceptConsole, setupErrorListeners } from './interceptor';
 import { setThemeConfig } from './theme';
 import type { ThemeConfig, VirtualConsoleConfig, VirtualConsoleGlobalState, VirtualConsoleInstance } from './types';
 
-let longPressTimer: any = null;
+export { toggleConsole } from './ui';
+
+let longPressTimer: ReturnType<typeof setTimeout> | null = null;
 let currentTouchCount = 0;
+
+/**
+ * True when the shortcut shouldn't fire because the user is actively typing
+ * in a form field (the host app's, or the console's own REPL input) - this
+ * is what keeps the shortcut from hijacking keystrokes the app being
+ * debugged relies on.
+ */
+function isEditableTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable) return true;
+    return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+}
+
+function matchesShortcut(e: KeyboardEvent, shortcut: VirtualConsoleConfig['keyboardShortcut']): boolean {
+    if (!shortcut) return false;
+    return (
+        e.code === shortcut.code &&
+        e.shiftKey === !!shortcut.shiftKey &&
+        e.ctrlKey === !!shortcut.ctrlKey &&
+        e.altKey === !!shortcut.altKey &&
+        e.metaKey === !!shortcut.metaKey
+    );
+}
 
 export const virtualConsoleGlobalStateKey = '__VIRTUAL_CONSOLE_STATE__';
 
@@ -25,9 +50,10 @@ function setupActivation() {
         }
     };
 
-    // Keyboard shortcut: Shift+C (or configured key)
+    // Keyboard shortcut (configurable, defaults to Shift+C)
     const onKeyDown = (e: KeyboardEvent) => {
-        if (e.shiftKey && e.code === getConfig().keyboardShortcut) {
+        if (isEditableTarget(e.target)) return;
+        if (matchesShortcut(e, getConfig().keyboardShortcut)) {
             e.preventDefault();
             toggleConsole();
         }
@@ -58,11 +84,6 @@ function setupActivation() {
 
         // Cancel timer when any finger lifts
         clearLongPressTimer();
-
-        // Reset touch count when all fingers lift
-        if (currentTouchCount === 0) {
-            currentTouchCount = 0;
-        }
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -111,7 +132,7 @@ export function installVirtualConsole(
 
     const instance: VirtualConsoleInstance = {
         destroy() {
-            cleanupCallbacks.slice().reverse().forEach((cleanup) => cleanup());
+            cleanupCallbacks.toReversed().forEach((cleanup) => cleanup());
             destroyConsole();
             resetConfig();
             setThemeConfig();

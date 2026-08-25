@@ -1,19 +1,19 @@
+import { getConfig } from './config';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { addLog } from './ui';
 
 export class REPL {
     private history: string[] = [];
     private historyIndex: number = -1;
-    private maxHistory: number = 50;
 
     constructor() {
-        // Load history from localStorage if available
-        try {
-            const saved = localStorage.getItem('virtual-console-history');
-            if (saved) {
+        const saved = getStorageItem(STORAGE_KEYS.replHistory);
+        if (saved) {
+            try {
                 this.history = JSON.parse(saved);
+            } catch {
+                // Corrupt data - start fresh.
             }
-        } catch (e) {
-            // Ignore
         }
     }
 
@@ -51,17 +51,14 @@ export class REPL {
         }
 
         this.history.push(command);
-        if (this.history.length > this.maxHistory) {
-            this.history.shift();
+        const maxHistory = getConfig().replHistoryLimit;
+        if (this.history.length > maxHistory) {
+            this.history.splice(0, this.history.length - maxHistory);
         }
 
         this.historyIndex = this.history.length;
 
-        try {
-            localStorage.setItem('virtual-console-history', JSON.stringify(this.history));
-        } catch (e) {
-            // Ignore
-        }
+        setStorageItem(STORAGE_KEYS.replHistory, JSON.stringify(this.history));
     }
 
     getHistoryPrevious(): string | null {
@@ -104,7 +101,7 @@ export class REPL {
             if (trimmed.includes('delete ')) return undefined;
 
             return (0, eval)(trimmed);
-        } catch (e) {
+        } catch {
             return undefined;
         }
     }
@@ -160,9 +157,9 @@ export class REPL {
 
             return Array.from(props)
                 .filter(p => p.startsWith(prefix) && p !== prefix)
-                .sort()
+                .toSorted()
                 .slice(0, 50); // Limit results
-        } catch (e) {
+        } catch {
             return [];
         }
     }

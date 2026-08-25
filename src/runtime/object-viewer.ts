@@ -89,12 +89,12 @@ export function createObjectViewer(value: any, seen = new WeakSet<object>()): HT
 
             // Toggle logic
             let isExpanded = false;
-            header.onclick = (e) => {
+            header.addEventListener('click', (e) => {
                 e.stopPropagation();
                 isExpanded = !isExpanded;
                 expandIcon.classList.toggle('expanded', isExpanded);
                 stackDiv.style.display = isExpanded ? 'block' : 'none';
-            };
+            });
         } else {
             expandIcon.style.visibility = 'hidden';
             header.style.cursor = 'default';
@@ -167,7 +167,7 @@ export function createObjectViewer(value: any, seen = new WeakSet<object>()): HT
 
         // Toggle expand/collapse
         let isExpanded = false;
-        header.onclick = (e) => {
+        header.addEventListener('click', (e) => {
             e.stopPropagation();
             isExpanded = !isExpanded;
             expandIcon.classList.toggle('expanded', isExpanded);
@@ -177,7 +177,7 @@ export function createObjectViewer(value: any, seen = new WeakSet<object>()): HT
             if (isExpanded && propertiesContainer.children.length === 0) {
                 loadProperties(value, propertiesContainer, seen);
             }
-        };
+        });
 
         objContainer.appendChild(header);
         objContainer.appendChild(propertiesContainer);
@@ -298,7 +298,7 @@ function loadProperties(value: any, container: HTMLElement, seen: WeakSet<object
                 getter.className = 'vc-getter';
                 getter.textContent = '(...)';
                 getter.title = 'Click to invoke getter';
-                getter.onclick = (e) => {
+                getter.addEventListener('click', (e) => {
                     e.stopPropagation();
                     try {
                         const result = value[key];
@@ -307,7 +307,7 @@ function loadProperties(value: any, container: HTMLElement, seen: WeakSet<object
                         getter.textContent = `Error: ${err.message}`;
                         getter.style.color = '#f00';
                     }
-                };
+                });
                 propDiv.appendChild(getter);
             } else {
                 propDiv.appendChild(createObjectViewer(value[key], seen));

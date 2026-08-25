@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { STORAGE_KEYS } from './storage';
 import { cycleTheme, getThemeConfig, initThemeIndex, loadSavedTheme, setThemeConfig } from './theme';
 
 describe('theme', () => {
@@ -25,13 +26,13 @@ describe('theme', () => {
     });
 
     it('falls back to the default theme when the saved value is not available', () => {
-        localStorage.setItem('virtual-console-theme', 'not-a-real-theme');
+        localStorage.setItem(STORAGE_KEYS.theme, 'not-a-real-theme');
 
         expect(loadSavedTheme()).toBe('vscode');
     });
 
     it('returns the saved theme when it is still available', () => {
-        localStorage.setItem('virtual-console-theme', 'dracula');
+        localStorage.setItem(STORAGE_KEYS.theme, 'dracula');
 
         expect(loadSavedTheme()).toBe('dracula');
     });
@@ -44,7 +45,7 @@ describe('theme', () => {
 
         expect(container.classList.contains('theme-vscode')).toBe(false);
         expect(container.classList.contains('theme-chrome-light')).toBe(true);
-        expect(localStorage.getItem('virtual-console-theme')).toBe('chrome-light');
+        expect(localStorage.getItem(STORAGE_KEYS.theme)).toBe('chrome-light');
     });
 
     it('wraps back to the first theme after the last one', () => {
@@ -69,7 +70,7 @@ describe('theme', () => {
     });
 
     it('initializes the theme index from the saved preference', () => {
-        localStorage.setItem('virtual-console-theme', 'nord');
+        localStorage.setItem(STORAGE_KEYS.theme, 'nord');
 
         expect(initThemeIndex()).toBe('nord');
     });

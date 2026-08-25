@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { THEMES } from '../../runtime/themes';
 import { virtualConsoleVitePlugin } from './index';
 
 describe('virtualConsoleVitePlugin', () => {
     it('throws when no themes are provided', () => {
         expect(() => virtualConsoleVitePlugin({ themes: [] })).toThrow(/at least one theme/i);
+    });
+
+    it('accepts every theme from the runtime\'s canonical theme list (no drift between the two)', () => {
+        expect(() => virtualConsoleVitePlugin({ themes: [...THEMES] })).not.toThrow();
     });
 
     it('throws when an invalid theme is provided', () => {

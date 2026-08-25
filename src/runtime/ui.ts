@@ -3,6 +3,7 @@ import { debounce, getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
 import { highlightCode } from './syntax-highlighter';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { cycleTheme, getThemeConfig, initThemeIndex } from './theme';
 import type { LogType } from './types';
 
@@ -12,9 +13,15 @@ let isVisible = false;
 let teardownCallbacks: Array<() => void> = [];
 
 type DockPosition = 'bottom' | 'top' | 'left' | 'right';
-let dockPosition: DockPosition = (localStorage.getItem('vc_dock_pos') as DockPosition) || 'bottom';
-let consoleWidth = parseInt(localStorage.getItem('vc_dock_width') || '400', 10);
-let consoleHeight = parseInt(localStorage.getItem('vc_dock_height') || getConfig().defaultHeight.toString(), 10);
+
+function isDockPosition(value: string | null): value is DockPosition {
+    return value === 'bottom' || value === 'top' || value === 'left' || value === 'right';
+}
+
+const savedDockPosition = getStorageItem(STORAGE_KEYS.dockPosition);
+let dockPosition: DockPosition = isDockPosition(savedDockPosition) ? savedDockPosition : 'bottom';
+let consoleWidth = parseInt(getStorageItem(STORAGE_KEYS.dockWidth) || String(getConfig().defaultWidth), 10);
+let consoleHeight = parseInt(getStorageItem(STORAGE_KEYS.dockHeight) || String(getConfig().defaultHeight), 10);
 
 function addTeardown(callback: () => void) {
     teardownCallbacks.push(callback);
@@ -34,10 +41,10 @@ export function toggleConsole() {
  */
 function clearLogs() {
     if (!logsContainer) return;
-    const repl = logsContainer.querySelector('.virtual-console-repl');
+    const replElement = logsContainer.querySelector('.virtual-console-repl');
     logsContainer.innerHTML = '';
-    if (repl) {
-        logsContainer.appendChild(repl);
+    if (replElement) {
+        logsContainer.appendChild(replElement);
     }
 }
 
@@ -168,9 +175,9 @@ export function addLog(args: any[], type: LogType = 'info') {
     entry.appendChild(content);
 
     // Insert before REPL if it exists
-    const repl = logsContainer.querySelector('.virtual-console-repl');
-    if (repl) {
-        logsContainer.insertBefore(entry, repl);
+    const replElement = logsContainer.querySelector('.virtual-console-repl');
+    if (replElement) {
+        logsContainer.insertBefore(entry, replElement);
     } else {
         logsContainer.appendChild(entry);
     }
@@ -219,13 +226,13 @@ function setupDockMenu(btn: HTMLElement) {
         const dBtn = document.createElement('button');
         dBtn.className = `vc-dock-menu-btn vc-dock-btn-${dir}`;
         dBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgParams}</svg>`;
-        dBtn.onclick = (e) => {
+        dBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dockPosition = dir;
-            localStorage.setItem('vc_dock_pos', dockPosition);
+            setStorageItem(STORAGE_KEYS.dockPosition, dockPosition);
             applyDockPosition();
             menu.style.display = 'none';
-        };
+        });
         return dBtn;
     };
 
@@ -241,10 +248,10 @@ function setupDockMenu(btn: HTMLElement) {
     btn.appendChild(menu);
     btn.style.position = 'relative';
 
-    btn.onclick = (e) => {
+    btn.addEventListener('click', (e) => {
         e.stopPropagation();
         menu.style.display = menu.style.display === 'none' ? 'grid' : 'none';
-    };
+    });
 
     const closeMenu = (e: MouseEvent) => {
         if (!menu.contains(e.target as Node) && e.target !== btn && !btn.contains(e.target as Node)) {
@@ -331,7 +338,7 @@ function setupDragAndDrop(header: HTMLElement) {
 
         if (currentDropZone && currentDropZone !== dockPosition) {
             dockPosition = currentDropZone;
-            localStorage.setItem('vc_dock_pos', dockPosition);
+            setStorageItem(STORAGE_KEYS.dockPosition, dockPosition);
             applyDockPosition();
         }
     }
@@ -383,22 +390,22 @@ function setupResize(handle: HTMLElement) {
             const deltaY = startY - currentY;
             consoleHeight = Math.max(config.minHeight, Math.min(config.maxHeight, startHeight + deltaY));
             if (container) container.style.height = `${consoleHeight}px`;
-            localStorage.setItem('vc_dock_height', consoleHeight.toString());
+            setStorageItem(STORAGE_KEYS.dockHeight, consoleHeight.toString());
         } else if (dockPosition === 'top') {
             const deltaY = currentY - startY;
             consoleHeight = Math.max(config.minHeight, Math.min(config.maxHeight, startHeight + deltaY));
             if (container) container.style.height = `${consoleHeight}px`;
-            localStorage.setItem('vc_dock_height', consoleHeight.toString());
+            setStorageItem(STORAGE_KEYS.dockHeight, consoleHeight.toString());
         } else if (dockPosition === 'left') {
             const deltaX = currentX - startX;
-            consoleWidth = Math.max(200, Math.min(window.innerWidth * 0.8, startWidth + deltaX));
+            consoleWidth = Math.max(config.minWidth, Math.min(config.maxWidth, startWidth + deltaX));
             if (container) container.style.width = `${consoleWidth}px`;
-            localStorage.setItem('vc_dock_width', consoleWidth.toString());
+            setStorageItem(STORAGE_KEYS.dockWidth, consoleWidth.toString());
         } else if (dockPosition === 'right') {
             const deltaX = startX - currentX;
-            consoleWidth = Math.max(200, Math.min(window.innerWidth * 0.8, startWidth + deltaX));
+            consoleWidth = Math.max(config.minWidth, Math.min(config.maxWidth, startWidth + deltaX));
             if (container) container.style.width = `${consoleWidth}px`;
-            localStorage.setItem('vc_dock_width', consoleWidth.toString());
+            setStorageItem(STORAGE_KEYS.dockWidth, consoleWidth.toString());
         }
     }
 
@@ -432,6 +439,7 @@ function setupResize(handle: HTMLElement) {
 export function createConsole() {
     destroyConsole();
     container = document.createElement('div');
+    const config = getConfig();
 
     // Load saved theme or use default
     const initialTheme = initThemeIndex();
@@ -456,28 +464,32 @@ export function createConsole() {
         const themeBtn = document.createElement('button');
         themeBtn.className = 'virtual-console-button';
         themeBtn.title = 'Cycle Theme';
+        themeBtn.setAttribute('aria-label', 'Cycle Theme');
         themeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>';
-        themeBtn.onclick = () => container && cycleTheme(container);
+        themeBtn.addEventListener('click', () => container && cycleTheme(container));
         controls.appendChild(themeBtn);
     }
 
     const dockBtn = document.createElement('button');
     dockBtn.className = 'virtual-console-button';
     dockBtn.title = 'Dock Position';
+    dockBtn.setAttribute('aria-label', 'Dock Position');
     dockBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="3" y="15" width="18" height="6" rx="2" ry="2"></rect></svg>';
     setupDockMenu(dockBtn);
 
     const clearBtn = document.createElement('button');
     clearBtn.className = 'virtual-console-button';
     clearBtn.title = 'Clear Logs';
+    clearBtn.setAttribute('aria-label', 'Clear Logs');
     clearBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>';
-    clearBtn.onclick = clearLogs;
+    clearBtn.addEventListener('click', clearLogs);
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'virtual-console-button';
     closeBtn.title = 'Close Console';
+    closeBtn.setAttribute('aria-label', 'Close Console');
     closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
-    closeBtn.onclick = toggleConsole;
+    closeBtn.addEventListener('click', toggleConsole);
 
     controls.appendChild(dockBtn);
     controls.appendChild(clearBtn);
@@ -492,63 +504,68 @@ export function createConsole() {
     container.appendChild(header);
     container.appendChild(logsContainer);
 
-    // REPL Container
-    const replContainer = document.createElement('div');
-    replContainer.className = 'virtual-console-repl';
+    if (config.replEnabled) {
+        // REPL Container
+        const replContainer = document.createElement('div');
+        replContainer.className = 'virtual-console-repl';
 
-    // Suggestions Popup
-    const suggestionsBox = document.createElement('div');
-    suggestionsBox.className = 'virtual-console-suggestions';
-    suggestionsBox.style.display = 'none';
-    replContainer.appendChild(suggestionsBox);
+        // Suggestions Popup
+        const suggestionsBox = document.createElement('div');
+        suggestionsBox.className = 'virtual-console-suggestions';
+        suggestionsBox.style.display = 'none';
+        replContainer.appendChild(suggestionsBox);
 
-    // Input Wrapper (for ghost text and syntax highlighting)
-    const inputWrapper = document.createElement('div');
-    inputWrapper.className = 'virtual-console-input-wrapper';
+        // Input Wrapper (for ghost text and syntax highlighting)
+        const inputWrapper = document.createElement('div');
+        inputWrapper.className = 'virtual-console-input-wrapper';
 
-    // Highlight Backdrop (renders highlighted code behind the transparent input)
-    const highlightBackdrop = document.createElement('div');
-    highlightBackdrop.className = 'virtual-console-highlight-backdrop';
-    inputWrapper.appendChild(highlightBackdrop);
+        // Highlight Backdrop (renders highlighted code behind the transparent input)
+        const highlightBackdrop = document.createElement('div');
+        highlightBackdrop.className = 'virtual-console-highlight-backdrop';
+        inputWrapper.appendChild(highlightBackdrop);
 
-    // Input Field
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'virtual-console-input';
-    input.placeholder = 'Run command...';
-    input.spellcheck = false;
-    input.autocapitalize = 'off';
-    input.autocomplete = 'off';
-    inputWrapper.appendChild(input);
+        // Input Field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'virtual-console-input';
+        input.placeholder = 'Run command...';
+        input.setAttribute('aria-label', 'Console command input');
+        input.spellcheck = false;
+        input.autocapitalize = 'off';
+        input.autocomplete = 'off';
+        inputWrapper.appendChild(input);
 
-    // Ghost Text (Pre-evaluation result)
-    const ghostText = document.createElement('div');
-    ghostText.className = 'virtual-console-ghost';
-    inputWrapper.appendChild(ghostText);
+        // Ghost Text (Pre-evaluation result)
+        const ghostText = document.createElement('div');
+        ghostText.className = 'virtual-console-ghost';
+        inputWrapper.appendChild(ghostText);
 
-    // Run Button
-    const runBtn = document.createElement('button');
-    runBtn.className = 'virtual-console-run-btn';
-    runBtn.textContent = 'Run';
+        // Run Button
+        const runBtn = document.createElement('button');
+        runBtn.className = 'virtual-console-run-btn';
+        runBtn.textContent = 'Run';
 
-    replContainer.appendChild(inputWrapper);
-    replContainer.appendChild(runBtn);
+        replContainer.appendChild(inputWrapper);
+        replContainer.appendChild(runBtn);
 
-    // Append REPL to logs container (as the last item)
-    logsContainer.appendChild(replContainer);
+        // Append REPL to logs container (as the last item)
+        logsContainer.appendChild(replContainer);
 
-    container.appendChild(resizeHandle);
-    container.appendChild(header);
-    container.appendChild(logsContainer);
+        setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer, highlightBackdrop);
+    }
 
-    const config = getConfig();
     if (config.targetElement) {
         config.targetElement.appendChild(container);
-        // If mounting to a custom element, we might want absolute positioning relative to it
-        // But for now, we keep the default styles (fixed) unless overridden by CSS
-        // Actually, if it's a custom container, 'absolute' is usually better if the container is relative
-        // Let's force absolute if target is not body?
+
+        // A custom target only positions our (position: absolute) container
+        // correctly if it establishes its own positioning context. Rather
+        // than requiring every consumer to remember to set that up, promote
+        // a `static` target to `relative` ourselves; leave anything the
+        // consumer already positioned (relative/absolute/fixed/sticky) alone.
         if (config.targetElement !== document.body) {
+            if (window.getComputedStyle(config.targetElement).position === 'static') {
+                config.targetElement.style.position = 'relative';
+            }
             container.style.position = 'absolute';
         }
     } else {
@@ -557,7 +574,14 @@ export function createConsole() {
 
     setupResize(resizeHandle);
     setupDragAndDrop(header);
-    setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer, highlightBackdrop);
+
+    const onEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && isVisible) {
+            toggleConsole();
+        }
+    };
+    container.addEventListener('keydown', onEscape);
+    addTeardown(() => container?.removeEventListener('keydown', onEscape));
 
     addLog(['Debug Console initialized'], 'info');
 
@@ -612,7 +636,7 @@ function setupREPL(
         }
     };
 
-    runBtn.onclick = execute;
+    runBtn.addEventListener('click', execute);
 
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -681,7 +705,7 @@ function setupREPL(
                 const div = document.createElement('div');
                 div.className = 'vc-suggestion';
                 div.textContent = s;
-                div.onclick = () => {
+                div.addEventListener('click', () => {
                     // Replace logic similar to Tab
                     const lastDot = input.value.lastIndexOf('.');
                     if (lastDot !== -1) {
@@ -693,7 +717,7 @@ function setupREPL(
                     input.focus();
                     // Trigger input event to update ghost text
                     input.dispatchEvent(new Event('input'));
-                };
+                });
                 suggestionsBox.appendChild(div);
             });
             suggestionsBox.style.display = 'block';
