@@ -1,5 +1,7 @@
 import { getConfig } from './config';
 import { debounce, getTimestamp } from './utils';
+import { createIcon, ensureIconSprite } from './icons';
+import type { IconName } from './icons';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
 import { highlightCode } from './syntax-highlighter';
@@ -138,11 +140,23 @@ function processStyledArgs(args: any[]): { type: 'text' | 'styled' | 'value', va
 /**
  * Adds a log entry
  */
+const LOG_ICONS: Partial<Record<LogType, IconName>> = {
+    command: 'prompt',
+    result: 'result',
+    error: 'error',
+    warn: 'warning'
+};
+
 export function addLog(args: any[], type: LogType = 'info') {
     if (!logsContainer) return;
 
     const entry = document.createElement('div');
     entry.className = `virtual-console-log-entry virtual-console-log-${type}`;
+
+    const icon = LOG_ICONS[type];
+    if (icon) {
+        entry.appendChild(createIcon(icon, 'virtual-console-log-icon'));
+    }
 
     const timestamp = document.createElement('span');
     timestamp.className = 'virtual-console-timestamp';
@@ -151,25 +165,32 @@ export function addLog(args: any[], type: LogType = 'info') {
     const content = document.createElement('div');
     content.className = 'virtual-console-content';
 
-    // Process arguments for %c styling
-    const processedArgs = processStyledArgs(args);
+    if (type === 'command' && typeof args[0] === 'string') {
+        // The echoed REPL command is source code, not a logged string value -
+        // render it with the same tokenizer the live input uses instead of
+        // createObjectViewer(), which would just quote it like any other string.
+        content.innerHTML = highlightCode(args[0]);
+    } else {
+        // Process arguments for %c styling
+        const processedArgs = processStyledArgs(args);
 
-    processedArgs.forEach((item) => {
-        if (item.type === 'styled') {
-            // Styled text
-            const styledEl = createStyledElement(item.value, item.style || '');
-            content.appendChild(styledEl);
-        } else if (item.type === 'text') {
-            // Plain text from split
-            const textSpan = document.createElement('span');
-            textSpan.textContent = item.value;
-            content.appendChild(textSpan);
-        } else {
-            // Regular value - use object viewer
-            const viewer = createObjectViewer(item.value);
-            content.appendChild(viewer);
-        }
-    });
+        processedArgs.forEach((item) => {
+            if (item.type === 'styled') {
+                // Styled text
+                const styledEl = createStyledElement(item.value, item.style || '');
+                content.appendChild(styledEl);
+            } else if (item.type === 'text') {
+                // Plain text from split
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item.value;
+                content.appendChild(textSpan);
+            } else {
+                // Regular value - use object viewer
+                const viewer = createObjectViewer(item.value);
+                content.appendChild(viewer);
+            }
+        });
+    }
 
     entry.appendChild(timestamp);
     entry.appendChild(content);
@@ -441,6 +462,8 @@ export function createConsole() {
     container = document.createElement('div');
     const config = getConfig();
 
+    ensureIconSprite(container);
+
     // Load saved theme or use default
     const initialTheme = initThemeIndex();
 
@@ -534,6 +557,11 @@ export function createConsole() {
         input.autocapitalize = 'off';
         input.autocomplete = 'off';
         inputWrapper.appendChild(input);
+
+        // Prompt icon - a sibling *after* input (not a ::before on the
+        // wrapper) so :not(:placeholder-shown) ~ selector below can style it
+        // based on whether the input actually has content.
+        inputWrapper.appendChild(createIcon('prompt', 'virtual-console-prompt-icon'));
 
         // Ghost Text (Pre-evaluation result)
         const ghostText = document.createElement('div');
@@ -683,18 +711,14 @@ function setupREPL(
 
         updateHighlight(val);
 
-        // Pre-evaluation
+        // Pre-evaluation preview
         const result = repl.preEvaluate(val);
         if (result !== undefined) {
             ghostText.innerHTML = '';
-            // We want to show the result as a preview. 
-            // Reuse createObjectViewer but maybe simplified?
-            // Or just text content for simple primitives?
-            // createObjectViewer returns an element.
-            const viewer = createObjectViewer(result);
-            ghostText.appendChild(viewer);
+            ghostText.appendChild(createIcon('result', 'virtual-console-ghost-icon'));
+            ghostText.appendChild(createObjectViewer(result));
         } else {
-            ghostText.textContent = '';
+            ghostText.innerHTML = '';
         }
 
         // Autocompletion
