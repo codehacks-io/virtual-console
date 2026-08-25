@@ -8,6 +8,7 @@ A mobile-friendly virtual console for debugging web applications. Use it through
 - 🔍 **Object Inspector**: Interactive viewer for Objects, Arrays, Maps, Sets, and more.
 - 🎨 **Themable**: Comes with multiple themes (VSCode, Chrome Light, Dracula, Nord, Tokyo).
 - ⚡ **Vite Plugin**: Optional early injection for Vite apps.
+- 🔒 **No Telemetry**: Fully local and self-contained — see [Privacy](#privacy).
 
 ### Installation
 
@@ -68,6 +69,10 @@ The console supports the following themes:
 - **Desktop**: Press `Shift + C`
 - **Mobile**: Long press with 2 fingers for 0.5s
 
+## Privacy
+
+Virtual Console makes zero outbound network or telemetry calls of its own. It only reads/writes `localStorage` on the page it's installed on (theme choice, dock position/size) and renders everything locally in the DOM it creates. Nothing you log or throw is ever sent anywhere by this library.
+
 ## Development
 
 ```bash
@@ -76,6 +81,12 @@ pnpm install
 
 # Build the library
 pnpm build
+
+# Typecheck
+pnpm typecheck
+
+# Run the test suite
+pnpm test
 
 # Run local workspace examples
 pnpm dev:local-import

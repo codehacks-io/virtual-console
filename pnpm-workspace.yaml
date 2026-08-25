@@ -4,5 +4,7 @@ packages:
   - 'examples/react-vite-local-plugin'
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@types/node@26.3.0'
 onlyBuiltDependencies:
   - esbuild
