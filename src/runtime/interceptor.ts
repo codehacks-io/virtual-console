@@ -46,21 +46,21 @@ export function interceptConsole() {
     return restoreConsole;
 }
 
+function onError(e: ErrorEvent) {
+    const message = e.filename
+        ? `Error in ${e.filename}:${e.lineno}:${e.colno} - ${e.message}`
+        : `Error: ${e.message}`;
+    addLog([message], 'error');
+}
+
+function onUnhandledRejection(e: PromiseRejectionEvent) {
+    addLog([`Unhandled Promise Rejection:`, e.reason], 'error');
+}
+
 /**
  * Sets up error listeners
  */
 export function setupErrorListeners() {
-    const onError = (e: ErrorEvent) => {
-        const message = e.filename
-            ? `Error in ${e.filename}:${e.lineno}:${e.colno} - ${e.message}`
-            : `Error: ${e.message}`;
-        addLog([message], 'error');
-    };
-
-    const onUnhandledRejection = (e: PromiseRejectionEvent) => {
-        addLog([`Unhandled Promise Rejection:`, e.reason], 'error');
-    };
-
     window.addEventListener('error', onError, true);
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
