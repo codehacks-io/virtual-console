@@ -494,19 +494,49 @@
   opacity: 0.7;
   pointer-events: none;
   font-size: 10px;
+  z-index: 3;
 }
+
+/* Renders highlighted code behind the transparent input, aligned to it */
+.virtual-console-highlight-backdrop {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  /* matches .virtual-console-input-wrapper's padding-left */
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  white-space: pre;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.4;
+  color: var(--vc-text);
+  z-index: 1;
+}
+
+.virtual-console-highlight-backdrop .vc-string { color: var(--vc-string); }
+.virtual-console-highlight-backdrop .vc-number { color: var(--vc-number); }
+.virtual-console-highlight-backdrop .vc-boolean { color: var(--vc-boolean); }
+.virtual-console-highlight-backdrop .vc-function { color: var(--vc-function); }
+.virtual-console-highlight-backdrop .vc-keyword { color: var(--vc-keyword); }
+.virtual-console-highlight-backdrop .vc-operator { color: var(--vc-operator); }
+.virtual-console-highlight-backdrop .vc-comment { color: var(--vc-comment); }
 
 .virtual-console-input {
   width: 100%;
   border: none;
   background: transparent;
-  color: var(--vc-text);
+  color: transparent;
+  caret-color: var(--vc-text);
   font-family: inherit;
   font-size: inherit;
   outline: none;
   padding: 0;
   margin: 0;
   line-height: 1.4;
+  position: relative;
+  z-index: 2;
 }
 
 .virtual-console-input:focus {
@@ -626,8 +656,10 @@
 .vc-dock-btn-right { grid-column: 3; grid-row: 2; }
 
 @media (max-width: 768px) {
-  /* Prevent iOS zoom on inputs */
-  .virtual-console-input {
+  /* Prevent iOS zoom on inputs; the backdrop must match or its highlighted
+     text will misalign with the (invisible) input text sitting on top of it */
+  .virtual-console-input,
+  .virtual-console-highlight-backdrop {
     font-size: 16px !important;
   }
 }

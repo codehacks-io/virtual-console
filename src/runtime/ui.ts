@@ -1,7 +1,8 @@
 import { getConfig } from './config';
-import { getTimestamp } from './utils';
+import { debounce, getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
+import { highlightCode } from './syntax-highlighter';
 import { cycleTheme, getThemeConfig, initThemeIndex } from './theme';
 import type { LogType } from './types';
 
@@ -501,9 +502,14 @@ export function createConsole() {
     suggestionsBox.style.display = 'none';
     replContainer.appendChild(suggestionsBox);
 
-    // Input Wrapper (for ghost text)
+    // Input Wrapper (for ghost text and syntax highlighting)
     const inputWrapper = document.createElement('div');
     inputWrapper.className = 'virtual-console-input-wrapper';
+
+    // Highlight Backdrop (renders highlighted code behind the transparent input)
+    const highlightBackdrop = document.createElement('div');
+    highlightBackdrop.className = 'virtual-console-highlight-backdrop';
+    inputWrapper.appendChild(highlightBackdrop);
 
     // Input Field
     const input = document.createElement('input');
@@ -551,7 +557,7 @@ export function createConsole() {
 
     setupResize(resizeHandle);
     setupDragAndDrop(header);
-    setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);
+    setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer, highlightBackdrop);
 
     addLog(['Debug Console initialized'], 'info');
 
@@ -574,7 +580,8 @@ function setupREPL(
     runBtn: HTMLButtonElement,
     ghostText: HTMLElement,
     suggestionsBox: HTMLElement,
-    replContainer: HTMLElement
+    replContainer: HTMLElement,
+    highlightBackdrop: HTMLElement
 ) {
     // Focus input when clicking anywhere in the REPL area
     replContainer.addEventListener('click', (e) => {
@@ -584,11 +591,17 @@ function setupREPL(
         }
     });
 
+    // Debounced so retyping fast on mobile doesn't re-tokenize on every keystroke
+    const updateHighlight = debounce((code: string) => {
+        highlightBackdrop.innerHTML = highlightCode(code);
+    }, 50);
+
     const execute = () => {
         const cmd = input.value;
         if (cmd) {
             repl.execute(cmd);
             input.value = '';
+            highlightBackdrop.innerHTML = '';
             ghostText.textContent = '';
             suggestionsBox.style.display = 'none';
 
@@ -608,6 +621,7 @@ function setupREPL(
             const prev = repl.getHistoryPrevious();
             if (prev !== null) {
                 input.value = prev;
+                input.dispatchEvent(new Event('input'));
                 // Move cursor to end
                 setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
             }
@@ -616,6 +630,7 @@ function setupREPL(
             const next = repl.getHistoryNext();
             if (next !== null) {
                 input.value = next;
+                input.dispatchEvent(new Event('input'));
             }
             e.preventDefault();
         } else if (e.key === 'Tab') {
@@ -641,6 +656,8 @@ function setupREPL(
 
     input.addEventListener('input', () => {
         const val = input.value;
+
+        updateHighlight(val);
 
         // Pre-evaluation
         const result = repl.preEvaluate(val);
