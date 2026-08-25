@@ -415,6 +415,18 @@
   color: var(--vc-symbol);
 }
 
+.vc-keyword {
+  color: var(--vc-keyword);
+}
+
+.vc-operator {
+  color: var(--vc-operator);
+}
+
+.vc-comment {
+  color: var(--vc-comment);
+}
+
 .vc-property-key {
   margin-right: 6px;
   color: var(--vc-property-key);
@@ -516,14 +528,6 @@
   color: var(--vc-text);
   z-index: 1;
 }
-
-.virtual-console-highlight-backdrop .vc-string { color: var(--vc-string); }
-.virtual-console-highlight-backdrop .vc-number { color: var(--vc-number); }
-.virtual-console-highlight-backdrop .vc-boolean { color: var(--vc-boolean); }
-.virtual-console-highlight-backdrop .vc-function { color: var(--vc-function); }
-.virtual-console-highlight-backdrop .vc-keyword { color: var(--vc-keyword); }
-.virtual-console-highlight-backdrop .vc-operator { color: var(--vc-operator); }
-.virtual-console-highlight-backdrop .vc-comment { color: var(--vc-comment); }
 
 .virtual-console-input {
   width: 100%;
