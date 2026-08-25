@@ -43,7 +43,8 @@
         "build": "rm -rf dist && tsup && mkdir -p dist/runtime/styles && cp -r src/runtime/styles/* dist/runtime/styles/ && cp src/runtime/styles.css dist/runtime/styles.css",
         "build:examples": "pnpm --filter @codehacks/react-vite-local-import build && pnpm --filter @codehacks/react-vite-local-plugin build",
         "build:packaged-examples": "pnpm run install:packaged-examples && pnpm --dir examples/packaged/react-vite-import build && pnpm --dir examples/packaged/react-vite-plugin build",
-        "lint": "tsc --noEmit",
+        "lint": "oxlint .",
+        "lint:fix": "oxlint . --fix",
         "typecheck": "tsc --noEmit",
         "test": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
         "test:watch": "NODE_OPTIONS=--no-experimental-webstorage vitest",
@@ -82,6 +83,7 @@
     "devDependencies": {
         "@types/node": "^26.3.0",
         "jsdom": "^30.0.1",
+        "oxlint": "^1.80.0",
         "tsup": "^8.5.1",
         "typescript": "^5.9.3",
         "vite": "^8.2.2",

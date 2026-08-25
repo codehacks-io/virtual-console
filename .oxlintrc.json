@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    // The library's public API intentionally exposes dunder-prefixed
+    // globals (`__VIRTUAL_CONSOLE_GLOBAL__` etc.) as its "internal/injected
+    // global" convention - not a code smell here.
+    "no-underscore-dangle": "off"
+  },
+  "overrides": [
+    {
+      // The REPL's entire purpose is evaluating arbitrary user-typed code.
+      // `eval` here is the intentional, load-bearing feature, not a bug -
+      // see the `replEnabled` config flag for consumers who want to opt out
+      // of shipping this eval surface entirely.
+      "files": ["src/runtime/repl.ts"],
+      "rules": {
+        "no-eval": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist",
+    "examples"
+  ],
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2022": true
+  }
+}
