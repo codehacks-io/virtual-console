@@ -71,4 +71,39 @@ describe('createConsole', () => {
         const entry = document.querySelector('.virtual-console-log-log')!;
         expect(entry.querySelector('.vc-icon')).toBeNull();
     });
+
+    describe('REPL input', () => {
+        it('is a textarea, so it can hold multi-line commands', () => {
+            createConsole();
+            const input = document.querySelector('.virtual-console-input')!;
+            expect(input.tagName).toBe('TEXTAREA');
+        });
+
+        it('runs the command on plain Enter', () => {
+            createConsole();
+            const input = document.querySelector('.virtual-console-input') as HTMLTextAreaElement;
+            input.value = '1 + 1';
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+
+            expect(document.querySelector('.virtual-console-log-command')).not.toBeNull();
+            expect(document.querySelector('.virtual-console-log-result')).not.toBeNull();
+            expect(input.value).toBe('');
+        });
+
+        it('leaves Shift+Enter alone (native newline insertion) instead of running the command', () => {
+            createConsole();
+            const input = document.querySelector('.virtual-console-input') as HTMLTextAreaElement;
+            input.value = '1 + 1';
+            const event = new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true, cancelable: true });
+            input.dispatchEvent(event);
+
+            expect(document.querySelector('.virtual-console-log-command')).toBeNull();
+            expect(document.querySelector('.virtual-console-log-result')).toBeNull();
+            expect(event.defaultPrevented).toBe(false);
+            // Value is untouched by our handler - jsdom doesn't simulate the
+            // browser's native newline insertion, so this just confirms we
+            // didn't clear it the way execute() would.
+            expect(input.value).toBe('1 + 1');
+        });
+    });
 });

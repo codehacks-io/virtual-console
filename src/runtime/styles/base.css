@@ -562,7 +562,9 @@
   opacity: 1;
 }
 
-/* Renders highlighted code behind the transparent input, aligned to it */
+/* Renders highlighted code behind the transparent input, aligned to it.
+   pre-wrap (not pre) so multi-line input that wraps or contains newlines
+   lines up with the textarea's own default word-wrapping. */
 .virtual-console-highlight-backdrop {
   position: absolute;
   top: 0;
@@ -571,7 +573,8 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   overflow: hidden;
   font-family: inherit;
   font-size: inherit;
@@ -581,6 +584,7 @@
 }
 
 .virtual-console-input {
+  display: block;
   width: 100%;
   border: none;
   background: transparent;
@@ -594,6 +598,8 @@
   line-height: 1.4;
   position: relative;
   z-index: 2;
+  resize: none;
+  overflow: hidden;
 }
 
 .virtual-console-input:focus {
