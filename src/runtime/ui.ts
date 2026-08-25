@@ -151,25 +151,32 @@ export function addLog(args: any[], type: LogType = 'info') {
     const content = document.createElement('div');
     content.className = 'virtual-console-content';
 
-    // Process arguments for %c styling
-    const processedArgs = processStyledArgs(args);
+    if (type === 'command' && typeof args[0] === 'string') {
+        // The echoed REPL command is source code, not a logged string value -
+        // render it with the same tokenizer the live input uses instead of
+        // createObjectViewer(), which would just quote it like any other string.
+        content.innerHTML = highlightCode(args[0]);
+    } else {
+        // Process arguments for %c styling
+        const processedArgs = processStyledArgs(args);
 
-    processedArgs.forEach((item) => {
-        if (item.type === 'styled') {
-            // Styled text
-            const styledEl = createStyledElement(item.value, item.style || '');
-            content.appendChild(styledEl);
-        } else if (item.type === 'text') {
-            // Plain text from split
-            const textSpan = document.createElement('span');
-            textSpan.textContent = item.value;
-            content.appendChild(textSpan);
-        } else {
-            // Regular value - use object viewer
-            const viewer = createObjectViewer(item.value);
-            content.appendChild(viewer);
-        }
-    });
+        processedArgs.forEach((item) => {
+            if (item.type === 'styled') {
+                // Styled text
+                const styledEl = createStyledElement(item.value, item.style || '');
+                content.appendChild(styledEl);
+            } else if (item.type === 'text') {
+                // Plain text from split
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item.value;
+                content.appendChild(textSpan);
+            } else {
+                // Regular value - use object viewer
+                const viewer = createObjectViewer(item.value);
+                content.appendChild(viewer);
+            }
+        });
+    }
 
     entry.appendChild(timestamp);
     entry.appendChild(content);

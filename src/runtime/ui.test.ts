@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { resetConfig, setConfig } from './config';
-import { destroyConsole, createConsole } from './ui';
+import { addLog, destroyConsole, createConsole } from './ui';
 
 describe('createConsole', () => {
     afterEach(() => {
@@ -38,5 +38,16 @@ describe('createConsole', () => {
         createConsole();
 
         expect(target.style.position).toBe('fixed');
+    });
+
+    it('renders a command log entry with syntax highlighting instead of quoting it as a string', () => {
+        createConsole();
+        addLog(['var x = 1; // comment'], 'command');
+
+        const content = document.querySelector('.virtual-console-log-command .virtual-console-content')!;
+
+        expect(content.querySelector('.vc-keyword')?.textContent).toBe('var');
+        expect(content.querySelector('.vc-comment')?.textContent).toBe('// comment');
+        expect(content.textContent).not.toContain('"var x = 1; // comment"');
     });
 });
