@@ -64,14 +64,69 @@ The console supports the following themes:
 - `nord`
 - `tokyo`
 
+`installVirtualConsole()` accepts a partial `VirtualConsoleConfig`:
+
+```typescript
+installVirtualConsole({
+  maxLogs: 100,               // logs kept before the oldest is dropped
+  minHeight: 100,              // dock bounds when docked top/bottom
+  maxHeight: window.innerHeight * 0.8,
+  defaultHeight: 200,
+  minWidth: 200,                // dock bounds when docked left/right
+  maxWidth: window.innerWidth * 0.8,
+  defaultWidth: 400,
+  keyboardShortcut: { code: 'KeyC', shiftKey: true }, // see below
+  longPressFingers: 2,          // mobile activation gesture
+  longPressDuration: 500,       // ms
+  replEnabled: true,            // set false to remove the eval-based REPL entirely
+  replHistoryLimit: 50,         // REPL commands kept in localStorage
+  targetElement: undefined      // mount into a specific element instead of <body>
+});
+```
+
+### Keyboard shortcut
+
+`keyboardShortcut` takes a `KeyboardEvent.code` plus the exact modifiers that must be held - every
+modifier not listed is required to be *up*, so the match is exact and won't fire on an unrelated
+combination that happens to share a key:
+
+```typescript
+// Ctrl+Shift+D instead of the default Shift+C
+installVirtualConsole({ keyboardShortcut: { code: 'KeyD', ctrlKey: true, shiftKey: true } });
+
+// Disable the keyboard shortcut entirely (e.g. only use the long-press gesture,
+// or wire your own trigger to the exported `toggleConsole()`)
+installVirtualConsole({ keyboardShortcut: null });
+```
+
+The shortcut is automatically ignored while focus is inside a text input, textarea, select, or
+`contenteditable` element (including the console's own REPL input) so it can't hijack a keystroke
+the app being debugged relies on.
+
+### Disabling the REPL
+
+The REPL evaluates whatever you type via `eval`. If you want to ship a read-only log viewer with
+no eval surface at all (e.g. a build that might reach production), set `replEnabled: false`.
+
+### Styling overrides
+
+The console's stacking order can be adjusted from your own CSS without a JS config option, in case
+your app already has a very-high-`z-index` overlay of its own:
+
+```css
+:root {
+  --vc-z-index: 2147483000;
+}
+```
+
 ## Activation
 
-- **Desktop**: Press `Shift + C`
-- **Mobile**: Long press with 2 fingers for 0.5s
+- **Desktop**: Press `Shift + C` (or `Escape` to close while the console is focused), configurable via `keyboardShortcut`
+- **Mobile**: Long press with 2 fingers for 0.5s, configurable via `longPressFingers` / `longPressDuration`
 
 ## Privacy
 
-Virtual Console makes zero outbound network or telemetry calls of its own. It only reads/writes `localStorage` on the page it's installed on (theme choice, dock position/size) and renders everything locally in the DOM it creates. Nothing you log or throw is ever sent anywhere by this library.
+Virtual Console makes zero outbound network or telemetry calls of its own. It only reads/writes `localStorage` on the page it's installed on (theme choice, dock position/size, REPL history - all under keys prefixed `virtual-console:`) and renders everything locally in the DOM it creates. Nothing you log or throw is ever sent anywhere by this library.
 
 ## Development
 
@@ -81,6 +136,9 @@ pnpm install
 
 # Build the library
 pnpm build
+
+# Lint
+pnpm lint
 
 # Typecheck
 pnpm typecheck
