@@ -1,3 +1,5 @@
+import type { KeyboardShortcut } from './types';
+
 /**
  * Formats a timestamp
  */
@@ -50,4 +52,32 @@ export function debounce<T extends (...args: any[]) => void>(func: T, wait: numb
         clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
     };
+}
+
+/**
+ * Turns a `KeyboardEvent.code` into a short human-readable label,
+ * e.g. 'KeyD' -> 'D', 'Digit1' -> '1', 'F8' -> 'F8'.
+ */
+function formatKeyCode(code: string): string {
+    if (code.startsWith('Key')) return code.slice(3);
+    if (code.startsWith('Digit')) return code.slice(5);
+    return code;
+}
+
+/**
+ * Formats a keyboard shortcut config into readable text, e.g.
+ * { code: 'KeyD', ctrlKey: true, shiftKey: true } -> 'Ctrl+Shift+D'.
+ * Returns null for a disabled shortcut (`null`/`undefined`), so callers can
+ * render UI that adapts when no keyboard shortcut is configured at all.
+ */
+export function formatKeyboardShortcut(shortcut: KeyboardShortcut | null | undefined): string | null {
+    if (!shortcut) return null;
+
+    const modifiers: string[] = [];
+    if (shortcut.ctrlKey) modifiers.push('Ctrl');
+    if (shortcut.altKey) modifiers.push('Alt');
+    if (shortcut.shiftKey) modifiers.push('Shift');
+    if (shortcut.metaKey) modifiers.push('Meta');
+
+    return [...modifiers, formatKeyCode(shortcut.code)].join('+');
 }

@@ -58,4 +58,11 @@ describe('config', () => {
         expect(DEFAULT_CONFIG.minWidth).toBe(200);
         expect(DEFAULT_CONFIG.maxWidth).toBeGreaterThan(DEFAULT_CONFIG.minWidth);
     });
+
+    it('returns a copy, so top-level reassignment does not affect internal state', () => {
+        const config = getConfig();
+        config.maxLogs = 999999;
+
+        expect(getConfig().maxLogs).toBe(DEFAULT_CONFIG.maxLogs);
+    });
 });

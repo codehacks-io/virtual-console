@@ -1,7 +1,10 @@
 /// <reference types="vite/client" />
 
-import { getVirtualConsoleGlobalState, installVirtualConsole } from '../../runtime';
-import type { ThemeConfig, VirtualConsoleConfig } from '../../runtime';
+// Imported by package name and marked external in tsup.config.ts so this
+// resolves to the app's own module instance at runtime, instead of getting
+// bundled as a separate copy with its own isolated state.
+import { getVirtualConsoleGlobalState, installVirtualConsole } from '@codehacks/virtual-console';
+import type { ThemeConfig, VirtualConsoleConfig } from '@codehacks/virtual-console';
 import { virtualConsoleOptionsElementId } from './constants';
 
 interface VirtualConsoleInjectedOptions {

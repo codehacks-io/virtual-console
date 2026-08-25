@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { installVirtualConsole } from '@codehacks/virtual-console';
+import { formatKeyboardShortcut, getConfig, installVirtualConsole } from '@codehacks/virtual-console';
 import '@codehacks/virtual-console/styles.css';
 import './styles.css';
 
@@ -16,10 +16,15 @@ function DemoActions() {
 }
 
 function App() {
+    const [activationHint, setActivationHint] = useState<{ shortcut: string | null; fingers: number } | null>(null);
+
     useEffect(() => {
         const virtualConsole = installVirtualConsole({
             maxLogs: 50
         });
+
+        const config = getConfig();
+        setActivationHint({ shortcut: formatKeyboardShortcut(config.keyboardShortcut), fingers: config.longPressFingers });
 
         return () => virtualConsole.destroy();
     }, []);
@@ -28,7 +33,12 @@ function App() {
         <main>
             <h1>Local Workspace Import</h1>
             <p>This app imports and installs the virtual console explicitly from the workspace package.</p>
-            <p>Press <code>Shift+C</code> or long-press with two fingers to toggle the console.</p>
+            {activationHint && (
+                <p>
+                    {activationHint.shortcut ? <>Press <code>{activationHint.shortcut}</code> or long-press</> : 'Long-press'}
+                    {' '}with {activationHint.fingers} finger{activationHint.fingers === 1 ? '' : 's'} to toggle the console.
+                </p>
+            )}
             <DemoActions />
         </main>
     );
