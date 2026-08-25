@@ -1,8 +1,10 @@
+import { THEMES } from './themes';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import type { ThemeConfig } from './types';
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
-    availableThemes: ['vscode', 'chrome-light', 'dracula', 'nord', 'tokyo'],
-    defaultTheme: 'vscode'
+    availableThemes: [...THEMES],
+    defaultTheme: THEMES[0]
 };
 
 let themeConfig: ThemeConfig = typeof window === 'undefined'
@@ -21,13 +23,9 @@ export function setThemeConfig(config?: ThemeConfig) {
 }
 
 export function loadSavedTheme(): string {
-    try {
-        const saved = localStorage.getItem('virtual-console-theme');
-        if (saved && themeConfig.availableThemes.includes(saved)) {
-            return saved;
-        }
-    } catch (e) {
-        // localStorage might not be available
+    const saved = getStorageItem(STORAGE_KEYS.theme);
+    if (saved && themeConfig.availableThemes.includes(saved)) {
+        return saved;
     }
     return themeConfig.defaultTheme;
 }
@@ -47,11 +45,7 @@ export function cycleTheme(container: HTMLElement) {
     container.classList.add(`theme-${newTheme}`);
 
     // Save preference
-    try {
-        localStorage.setItem('virtual-console-theme', newTheme);
-    } catch (e) {
-        // localStorage might not be available
-    }
+    setStorageItem(STORAGE_KEYS.theme, newTheme);
 
     // Log theme change
     const capitalizedTheme = newTheme.split('-').map(word =>

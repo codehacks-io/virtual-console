@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import type { HtmlTagDescriptor, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
+import { THEMES, type ThemeName } from '../../runtime/themes';
 import type { VirtualConsoleConfig } from '../../runtime/types';
 import {
     virtualConsoleBuildClientPath,
@@ -10,14 +11,16 @@ import {
 } from './constants';
 
 /**
- * Available theme names for the virtual console
+ * Available theme names for the virtual console.
+ * Re-exported from the runtime's canonical theme list so plugin consumers
+ * get the same type without importing from `runtime/themes` directly.
  */
-export type VirtualConsoleTheme = 'vscode' | 'chrome-light' | 'dracula' | 'nord' | 'tokyo';
+export type VirtualConsoleTheme = ThemeName;
 
 /**
  * All available themes - used for validation
  */
-const AVAILABLE_THEMES: readonly VirtualConsoleTheme[] = ['vscode', 'chrome-light', 'dracula', 'nord', 'tokyo'];
+const AVAILABLE_THEMES: readonly VirtualConsoleTheme[] = THEMES;
 
 export interface InjectVirtualConsoleOptions {
     /**
@@ -57,6 +60,11 @@ function serializeJson(value: unknown) {
     return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
+async function serveVirtualClient(server: ViteDevServer) {
+    const result = await server.transformRequest(virtualConsoleClientPackageId);
+    return result?.code;
+}
+
 function getRuntimeStylesDir() {
     const distRuntimeDir = resolve(__dirname, '../runtime');
     const distStylesDir = resolve(distRuntimeDir, 'styles');
@@ -92,12 +100,6 @@ export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): 
     // Validate themes early (at config time)
     validateThemes(options.themes);
     let config: ResolvedConfig;
-
-    async function serveVirtualClient(server: ViteDevServer) {
-        const result = await server.transformRequest(virtualConsoleClientPackageId);
-
-        return result?.code;
-    }
 
     return {
         name: 'virtual-console:vite',
