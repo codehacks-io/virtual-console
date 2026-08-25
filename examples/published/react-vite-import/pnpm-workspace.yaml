@@ -2,3 +2,11 @@ allowBuilds:
   esbuild: true
 onlyBuiltDependencies:
   - esbuild
+# This example intentionally floats on @codehacks/virtual-console@latest to
+# smoke-test the real published package (see examples/README.md). That's
+# also our own package, published by us, so pnpm's minimumReleaseAge
+# "wait before trusting a freshly-published package" guard against
+# supply-chain attacks doesn't apply the way it does for third-party deps -
+# exclude it so this example isn't blocked for ~24h after every release.
+minimumReleaseAgeExclude:
+  - '@codehacks/virtual-console'
