@@ -1,11 +1,44 @@
+/**
+ * A keyboard shortcut used to toggle the console. `code` is a
+ * `KeyboardEvent.code` value (e.g. `'KeyC'`, `'F8'`). Modifiers default to
+ * `false` when omitted, so every modifier that should be held down must be
+ * listed explicitly - this keeps matching exact and avoids the console
+ * popping open on an unrelated combination that happens to share a key.
+ */
+export interface KeyboardShortcut {
+    code: string;
+    shiftKey?: boolean;
+    ctrlKey?: boolean;
+    altKey?: boolean;
+    metaKey?: boolean;
+}
+
 export interface VirtualConsoleConfig {
     maxLogs: number;
     minHeight: number;
     maxHeight: number;
     defaultHeight: number;
-    keyboardShortcut: string;
+    minWidth: number;
+    maxWidth: number;
+    defaultWidth: number;
+    /**
+     * Toggles the console. Set to `null` to disable the keyboard shortcut
+     * entirely (e.g. if it conflicts with the host app and you only want
+     * the long-press gesture on mobile).
+     */
+    keyboardShortcut: KeyboardShortcut | null;
     longPressFingers: number;
     longPressDuration: number;
+    /**
+     * Enables the REPL input (arbitrary code evaluation via `eval`). Set to
+     * `false` to ship a read-only log viewer with no eval surface - e.g. for
+     * builds that might reach production.
+     */
+    replEnabled: boolean;
+    /**
+     * Number of REPL commands kept in history (persisted to localStorage).
+     */
+    replHistoryLimit: number;
     targetElement?: HTMLElement;
 }
 
