@@ -1,4 +1,4 @@
-import { mount } from './core';
+import { installVirtualConsole } from './core';
 
 // Auto-mount when loaded as a script
-mount(window.__VIRTUAL_CONSOLE_GLOBAL__?.options);
+installVirtualConsole(window.__VIRTUAL_CONSOLE_GLOBAL__?.options);
