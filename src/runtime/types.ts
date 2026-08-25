@@ -14,6 +14,16 @@ export interface ThemeConfig {
     defaultTheme: string;
 }
 
+export interface VirtualConsoleInstance {
+    destroy(): void;
+}
+
+export interface VirtualConsoleGlobalState {
+    instance?: VirtualConsoleInstance;
+    options?: Partial<VirtualConsoleConfig>;
+    theme?: ThemeConfig;
+}
+
 export type LogType = 'log' | 'info' | 'warn' | 'error' | 'debug' | 'command' | 'result';
 
 export interface LogEntry {
@@ -28,6 +38,7 @@ declare global {
             theme: ThemeConfig;
             options: Partial<VirtualConsoleConfig>;
         };
+        __VIRTUAL_CONSOLE_STATE__?: VirtualConsoleGlobalState;
         __VIRTUAL_CONSOLE_MOUNTED__?: boolean;
     }
 }

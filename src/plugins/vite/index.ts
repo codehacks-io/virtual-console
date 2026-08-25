@@ -1,7 +1,13 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import type { Plugin } from 'vite';
+import type { HtmlTagDescriptor, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import type { VirtualConsoleConfig } from '../../runtime/types';
+import {
+    virtualConsoleBuildClientPath,
+    virtualConsoleClientPackageId,
+    virtualConsoleDevClientPath,
+    virtualConsoleOptionsElementId
+} from './constants';
 
 /**
  * Available theme names for the virtual console
@@ -47,6 +53,37 @@ function validateThemes(themes: string[]): asserts themes is VirtualConsoleTheme
     }
 }
 
+function serializeJson(value: unknown) {
+    return JSON.stringify(value).replace(/</g, '\\u003c');
+}
+
+function getRuntimeStylesDir() {
+    const distRuntimeDir = resolve(__dirname, '../runtime');
+    const distStylesDir = resolve(distRuntimeDir, 'styles');
+
+    if (existsSync(resolve(distStylesDir, 'base.css'))) {
+        return distStylesDir;
+    }
+
+    return resolve(__dirname, '../../../src/runtime/styles');
+}
+
+function readSelectedCss(themes: VirtualConsoleTheme[]) {
+    const stylesDir = getRuntimeStylesDir();
+    const baseCss = readFileSync(resolve(stylesDir, 'base.css'), 'utf-8');
+    const themeCssArray = themes.map(theme => {
+        const themePath = resolve(stylesDir, `themes/${theme}.css`);
+
+        if (!existsSync(themePath)) {
+            throw new Error(`Theme CSS file not found: ${themePath}`);
+        }
+
+        return readFileSync(themePath, 'utf-8');
+    });
+
+    return [baseCss, ...themeCssArray].join('\n\n');
+}
+
 /**
  * Vite plugin to inject the virtual console into index.html
  * Injects base CSS, all selected theme CSS files, and the console JavaScript
@@ -54,86 +91,76 @@ function validateThemes(themes: string[]): asserts themes is VirtualConsoleTheme
 export function virtualConsoleVitePlugin(options: InjectVirtualConsoleOptions): Plugin {
     // Validate themes early (at config time)
     validateThemes(options.themes);
+    let config: ResolvedConfig;
+
+    async function serveVirtualClient(server: ViteDevServer) {
+        const result = await server.transformRequest(virtualConsoleClientPackageId);
+
+        return result?.code;
+    }
 
     return {
         name: 'virtual-console:vite',
-        transformIndexHtml: {
-            order: 'post',
-            handler(html) {
-                try {
-                    // Paths are relative to dist/plugin/ where this plugin resides after build
-                    // We need to go up one level to dist/runtime/
-                    const distRuntimeDir = resolve(__dirname, '../runtime');
+        configResolved(resolvedConfig) {
+            config = resolvedConfig;
+        },
+        configureServer(server) {
+            server.middlewares.use(virtualConsoleDevClientPath, async (_request, response, next) => {
+                const code = await serveVirtualClient(server);
 
-                    // Logic to handle dev (src) vs prod (dist) paths
-                    let realStylesDir = resolve(distRuntimeDir, 'styles');
-                    let realJsPath = resolve(distRuntimeDir, 'core.iife.js');
-
-                    // Check if we are running from source (e.g. ts-node/vite dev)
-                    // If dist/runtime/styles/base.css doesn't exist, we might be in src
-                    if (!existsSync(resolve(realStylesDir, 'base.css'))) {
-                        // In source: __dirname is src/plugins/vite
-                        // We need to go to src/runtime/styles
-                        const srcStylesDir = resolve(__dirname, '../../../src/runtime/styles');
-
-                        if (existsSync(resolve(srcStylesDir, 'base.css'))) {
-                            realStylesDir = srcStylesDir;
-
-                            // For JS, we still need the built IIFE because we don't compile on the fly here.
-                            // We assume the user has run 'pnpm build' or at least built the runtime.
-                            // From src/plugins/vite, dist is ../../../dist
-                            const distJsPath = resolve(__dirname, '../../../dist/runtime/core.iife.js');
-                            realJsPath = distJsPath;
-                        }
-                    }
-
-                    const baseCss = readFileSync(resolve(realStylesDir, 'base.css'), 'utf-8');
-
-                    // Read all theme CSS files
-                    const themeCssArray = options.themes.map(theme => {
-                        const themePath = resolve(realStylesDir, `themes/${theme}.css`);
-                        if (!existsSync(themePath)) throw new Error(`Theme CSS file not found: ${themePath}`);
-                        return readFileSync(themePath, 'utf-8');
-                    });
-
-                    const allCss = [baseCss, ...themeCssArray].join('\n\n');
-
-                    if (!existsSync(realJsPath)) {
-                        // If runtime is missing, we can't inject.
-                        // In a real dev scenario, we might want to watch the source and rebuild,
-                        // but for now we require a build.
-                        console.warn(`[inject-virtual-console] Runtime JS not found at ${realJsPath}. Skipping injection.`);
-                        return html;
-                    }
-                    const js = readFileSync(realJsPath, 'utf-8');
-
-                    const themeConfig = `
-            window.__VIRTUAL_CONSOLE_GLOBAL__ = {
-              theme: {
-                availableThemes: ${JSON.stringify(options.themes)},
-                defaultTheme: '${options.themes[0]}'
-              },
-              options: ${JSON.stringify(options.options || {})}
-            };
-          `;
-
-                    // Inject CSS in head
-                    let newHtml = html.replace('</head>', `<style>${allCss}</style></head>`);
-
-                    // Inject JS at the START of body to catch errors immediately
-                    if (newHtml.includes('<body')) {
-                        newHtml = newHtml.replace(/<body([^>]*)>/, `<body$1><script>${themeConfig}</script><script>${js}</script>`);
-                    } else {
-                        newHtml += `<script>${themeConfig}</script><script>${js}</script>`;
-                    }
-
-                    return newHtml;
-
-                } catch (error) {
-                    console.error(`[inject-virtual-console] Failed to inject console:`, error);
-                    return html;
+                if (!code) {
+                    next();
+                    return;
                 }
+
+                response.setHeader('Content-Type', 'application/javascript');
+                response.end(code);
+            });
+        },
+        buildStart() {
+            if (config.command === 'build') {
+                this.emitFile({
+                    type: 'chunk',
+                    id: virtualConsoleClientPackageId,
+                    fileName: virtualConsoleBuildClientPath
+                });
             }
+        },
+        transformIndexHtml(): HtmlTagDescriptor[] {
+            const theme = {
+                availableThemes: options.themes,
+                defaultTheme: options.themes[0]
+            };
+
+            return [
+                {
+                    tag: 'style',
+                    children: readSelectedCss(options.themes),
+                    injectTo: 'head-prepend'
+                },
+                {
+                    tag: 'script',
+                    attrs: {
+                        id: virtualConsoleOptionsElementId,
+                        type: 'application/json'
+                    },
+                    children: serializeJson({
+                        theme,
+                        options: options.options || {}
+                    }),
+                    injectTo: 'head-prepend'
+                },
+                {
+                    tag: 'script',
+                    attrs: {
+                        type: 'module',
+                        src: config.command === 'build'
+                            ? `${config.base}${virtualConsoleBuildClientPath}`
+                            : virtualConsoleDevClientPath
+                    },
+                    injectTo: 'head-prepend'
+                }
+            ];
         }
     };
 }

@@ -2,18 +2,22 @@ import { getConfig } from './config';
 import { getTimestamp } from './utils';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
-import { THEME_CONFIG, cycleTheme, initThemeIndex } from './theme';
-import { LogType } from './types';
+import { cycleTheme, getThemeConfig, initThemeIndex } from './theme';
+import type { LogType } from './types';
 
 let container: HTMLElement | null = null;
 let logsContainer: HTMLElement | null = null;
 let isVisible = false;
+let teardownCallbacks: Array<() => void> = [];
 
 type DockPosition = 'bottom' | 'top' | 'left' | 'right';
 let dockPosition: DockPosition = (localStorage.getItem('vc_dock_pos') as DockPosition) || 'bottom';
 let consoleWidth = parseInt(localStorage.getItem('vc_dock_width') || '400', 10);
 let consoleHeight = parseInt(localStorage.getItem('vc_dock_height') || getConfig().defaultHeight.toString(), 10);
 
+function addTeardown(callback: () => void) {
+    teardownCallbacks.push(callback);
+}
 
 /**
  * Toggles console visibility
@@ -241,11 +245,14 @@ function setupDockMenu(btn: HTMLElement) {
         menu.style.display = menu.style.display === 'none' ? 'grid' : 'none';
     };
 
-    document.addEventListener('click', (e) => {
+    const closeMenu = (e: MouseEvent) => {
         if (!menu.contains(e.target as Node) && e.target !== btn && !btn.contains(e.target as Node)) {
             menu.style.display = 'none';
         }
-    });
+    };
+
+    document.addEventListener('click', closeMenu);
+    addTeardown(() => document.removeEventListener('click', closeMenu));
 }
 
 function setupDragAndDrop(header: HTMLElement) {
@@ -334,6 +341,17 @@ function setupDragAndDrop(header: HTMLElement) {
     header.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('touchmove', drag, { passive: false });
     document.addEventListener('touchend', stopDrag);
+
+    addTeardown(() => {
+        header.removeEventListener('mousedown', startDrag);
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', stopDrag);
+        header.removeEventListener('touchstart', startDrag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('touchend', stopDrag);
+        overlay?.remove();
+        document.body.style.userSelect = '';
+    });
 }
 
 /**
@@ -395,12 +413,23 @@ function setupResize(handle: HTMLElement) {
     handle.addEventListener('touchstart', startResize, { passive: false });
     document.addEventListener('touchmove', resize, { passive: false });
     document.addEventListener('touchend', stopResize);
+
+    addTeardown(() => {
+        handle.removeEventListener('mousedown', startResize);
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('mouseup', stopResize);
+        handle.removeEventListener('touchstart', startResize);
+        document.removeEventListener('touchmove', resize);
+        document.removeEventListener('touchend', stopResize);
+        document.body.style.userSelect = '';
+    });
 }
 
 /**
  * Creates console DOM
  */
 export function createConsole() {
+    destroyConsole();
     container = document.createElement('div');
 
     // Load saved theme or use default
@@ -422,7 +451,7 @@ export function createConsole() {
     const controls = document.createElement('div');
     controls.className = 'virtual-console-controls';
 
-    if (THEME_CONFIG.availableThemes.length > 1) {
+    if (getThemeConfig().availableThemes.length > 1) {
         const themeBtn = document.createElement('button');
         themeBtn.className = 'virtual-console-button';
         themeBtn.title = 'Cycle Theme';
@@ -525,6 +554,17 @@ export function createConsole() {
     setupREPL(input, runBtn, ghostText, suggestionsBox, replContainer);
 
     addLog(['Debug Console initialized'], 'info');
+
+    return destroyConsole;
+}
+
+export function destroyConsole() {
+    teardownCallbacks.forEach((callback) => callback());
+    teardownCallbacks = [];
+    container?.remove();
+    container = null;
+    logsContainer = null;
+    isVisible = false;
 }
 
 

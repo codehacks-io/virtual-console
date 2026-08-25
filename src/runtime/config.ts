@@ -1,9 +1,13 @@
-import { VirtualConsoleConfig } from './types';
+import type { VirtualConsoleConfig } from './types';
+
+function getDefaultMaxHeight() {
+    return typeof window === 'undefined' ? 600 : window.innerHeight * 0.8;
+}
 
 export const DEFAULT_CONFIG: VirtualConsoleConfig = {
     maxLogs: 100,
     minHeight: 100,
-    maxHeight: window.innerHeight * 0.8,
+    maxHeight: getDefaultMaxHeight(),
     defaultHeight: 200,
     keyboardShortcut: 'KeyC', // Shift+C to toggle
     longPressFingers: 2, // amount of fingers long press to toggle
@@ -19,4 +23,8 @@ export function getConfig(): VirtualConsoleConfig {
 
 export function setConfig(options: Partial<VirtualConsoleConfig>) {
     activeConfig = { ...activeConfig, ...options };
+}
+
+export function resetConfig() {
+    activeConfig = { ...DEFAULT_CONFIG, maxHeight: getDefaultMaxHeight() };
 }
