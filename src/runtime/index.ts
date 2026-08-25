@@ -1,7 +1,6 @@
 export {
     getVirtualConsoleGlobalState,
     installVirtualConsole,
-    mount,
     toggleConsole,
     virtualConsoleGlobalStateKey
 } from './core';

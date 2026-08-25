@@ -72,6 +72,5 @@ declare global {
             options: Partial<VirtualConsoleConfig>;
         };
         __VIRTUAL_CONSOLE_STATE__?: VirtualConsoleGlobalState;
-        __VIRTUAL_CONSOLE_MOUNTED__?: boolean;
     }
 }

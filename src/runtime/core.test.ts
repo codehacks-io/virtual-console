@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { installVirtualConsole } from './core';
+import { getVirtualConsoleGlobalState, installVirtualConsole } from './core';
 import type { VirtualConsoleInstance } from './types';
 
 describe('installVirtualConsole', () => {
@@ -17,10 +17,10 @@ describe('installVirtualConsole', () => {
         expect(document.querySelector('.virtual-console-container')).not.toBeNull();
     });
 
-    it('marks the console as mounted on window', () => {
+    it('marks the console as mounted in the global state', () => {
         instance = installVirtualConsole();
 
-        expect(window.__VIRTUAL_CONSOLE_MOUNTED__).toBe(true);
+        expect(getVirtualConsoleGlobalState().instance).toBe(instance);
     });
 
     it('toggles visibility on Shift+C', () => {
@@ -124,6 +124,6 @@ describe('installVirtualConsole', () => {
 
         expect(document.querySelector('.virtual-console-container')).toBeNull();
         expect(console.log).toBe(originalLog);
-        expect(window.__VIRTUAL_CONSOLE_MOUNTED__).toBe(false);
+        expect(getVirtualConsoleGlobalState().instance).toBeUndefined();
     });
 });

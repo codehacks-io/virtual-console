@@ -137,21 +137,14 @@ export function installVirtualConsole(
             resetConfig();
             setThemeConfig();
             delete state.instance;
-            window.__VIRTUAL_CONSOLE_MOUNTED__ = false;
         }
     };
 
     state.instance = instance;
     state.options = options;
     state.theme = theme || window.__VIRTUAL_CONSOLE_GLOBAL__?.theme;
-    window.__VIRTUAL_CONSOLE_MOUNTED__ = true;
 
     console.info('Virtual Console initialized');
 
     return instance;
-}
-
-// Initialize
-export function mount(options?: Partial<VirtualConsoleConfig>) {
-    return installVirtualConsole(options);
 }
