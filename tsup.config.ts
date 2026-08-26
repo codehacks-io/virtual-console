@@ -1,4 +1,29 @@
+import { execSync } from 'node:child_process';
 import { defineConfig } from 'tsup';
+import pkg from './package.json' with { type: 'json' };
+
+function runGit(cmd: string): string {
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+}
+
+/** Captured once at build time so consumers never need git installed. */
+function getGitInfo(): { hash: string; dirty: boolean } {
+    try {
+        return { hash: runGit('git rev-parse --short HEAD'), dirty: runGit('git status --porcelain').length > 0 };
+    } catch {
+        return { hash: '', dirty: false };
+    }
+}
+
+const git = getGitInfo();
+
+// Baked into the runtime bundle as compile-time constants - see
+// __VC_VERSION__ / __VC_GIT_HASH__ / __VC_GIT_DIRTY__ in src/runtime/types.ts.
+const versionDefine = {
+    __VC_VERSION__: JSON.stringify(pkg.version),
+    __VC_GIT_HASH__: JSON.stringify(git.hash),
+    __VC_GIT_DIRTY__: JSON.stringify(git.dirty)
+};
 
 export default defineConfig([
     // Build the runtime IIFE for direct script usage.
@@ -14,6 +39,7 @@ export default defineConfig([
         dts: false,
         outExtension: () => ({ js: '.iife.js' }),
         clean: true,
+        define: versionDefine,
     },
     // Build the runtime Library (ESM/CJS for manual import)
     {
@@ -24,6 +50,7 @@ export default defineConfig([
         outDir: 'dist/runtime',
         dts: true,
         clean: false,
+        define: versionDefine,
     },
     // Build the Vite plugin
     {

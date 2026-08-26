@@ -66,6 +66,23 @@ export interface LogEntry {
 }
 
 declare global {
+    /**
+     * Package version, baked in by tsup's `define` (see tsup.config.ts).
+     * Guard with `typeof __VC_VERSION__ !== 'undefined'` (see ui.ts) - not
+     * set outside that build step (e.g. importing source directly).
+     */
+    const __VC_VERSION__: string;
+
+    /**
+     * Short git commit hash this build came from, `''` if unavailable at
+     * build time - see tsup.config.ts. Same typeof-guard rule as
+     * __VC_VERSION__.
+     */
+    const __VC_GIT_HASH__: string;
+
+    /** Whether the working tree had uncommitted changes at build time. */
+    const __VC_GIT_DIRTY__: boolean;
+
     interface Window {
         __VIRTUAL_CONSOLE_GLOBAL__?: {
             theme: ThemeConfig;

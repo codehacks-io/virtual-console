@@ -17,6 +17,57 @@ describe('createConsole', () => {
         expect(document.querySelectorAll('.virtual-console-logs').length).toBe(1);
     });
 
+    describe('version badge', () => {
+        // vitest doesn't run the tsup `define` step that normally replaces
+        // __VC_VERSION__/__VC_GIT_HASH__/__VC_GIT_DIRTY__ at build time, so
+        // each test sets them as real globals (or deletes them) to exercise
+        // a specific branch of the typeof-guarded fallback in ui.ts.
+        afterEach(() => {
+            delete (globalThis as any).__VC_VERSION__;
+            delete (globalThis as any).__VC_GIT_HASH__;
+            delete (globalThis as any).__VC_GIT_DIRTY__;
+        });
+
+        it('falls back to a bare "vdev" when none of the constants were defined', () => {
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('vdev');
+            expect(version.querySelector('.virtual-console-version-dirty')).toBeNull();
+        });
+
+        it('appends the commit hash as semver build metadata for a clean build', () => {
+            (globalThis as any).__VC_VERSION__ = '1.2.3';
+            (globalThis as any).__VC_GIT_HASH__ = 'a3f9c21';
+            (globalThis as any).__VC_GIT_DIRTY__ = false;
+
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('v1.2.3+a3f9c21');
+            expect(version.querySelector('.virtual-console-version-dirty')).toBeNull();
+        });
+
+        it('flags an uncommitted-changes build, even though it reports the same version number as a clean one', () => {
+            (globalThis as any).__VC_VERSION__ = '1.2.3';
+            (globalThis as any).__VC_GIT_HASH__ = 'a3f9c21';
+            (globalThis as any).__VC_GIT_DIRTY__ = true;
+
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('v1.2.3+a3f9c21.dirty');
+            expect(version.querySelector('.virtual-console-version-dirty')?.textContent).toBe('.dirty');
+        });
+
+        it('omits the build suffix entirely when no git hash was available at build time', () => {
+            (globalThis as any).__VC_VERSION__ = '1.2.3';
+            (globalThis as any).__VC_GIT_HASH__ = '';
+            (globalThis as any).__VC_GIT_DIRTY__ = true;
+
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('v1.2.3');
+        });
+    });
+
     it('promotes a static custom target to position:relative and docks the console absolutely', () => {
         const target = document.createElement('div');
         document.body.appendChild(target);
