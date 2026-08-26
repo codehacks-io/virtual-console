@@ -47,7 +47,7 @@ export default function LiveDemo() {
                         <button
                             key={label}
                             onClick={run}
-                            className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-5 text-sm text-neutral-300 transition hover:border-cyan-400/30 hover:bg-white/[0.05] hover:text-neutral-100"
+                            className="group flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-5 text-sm text-neutral-300 transition hover:border-cyan-400/30 hover:bg-white/[0.05] hover:text-neutral-100"
                         >
                             <Icon className="size-5 text-neutral-500 transition group-hover:text-cyan-400" />
                             {label}

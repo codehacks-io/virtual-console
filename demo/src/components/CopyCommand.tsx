@@ -5,9 +5,14 @@ export default function CopyCommand({ command }: { command: string }) {
     const [copied, setCopied] = useState(false);
 
     const copy = async () => {
-        await navigator.clipboard.writeText(command);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        try {
+            await navigator.clipboard.writeText(command);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            // Clipboard access can be denied (unfocused document, insecure
+            // context, permissions) - nothing to recover, just don't crash.
+        }
     };
 
     return (

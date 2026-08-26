@@ -155,7 +155,7 @@ pnpm dev:vite-plugin:local
 # Build local workspace examples
 pnpm build:local
 
-# Run the public demo site (examples/vs-demo note below)
+# Run the public demo site
 pnpm dev:demo
 
 # Build the public demo site

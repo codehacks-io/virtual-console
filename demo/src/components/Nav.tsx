@@ -23,10 +23,11 @@ export default function Nav() {
                         href="https://github.com/codehacks-io/virtual-console"
                         target="_blank"
                         rel="noreferrer"
+                        aria-label="GitHub"
                         className="flex items-center gap-1.5 transition hover:text-neutral-100"
                     >
                         <GithubIcon className="size-4" />
-                        <span className="hidden sm:inline">GitHub</span>
+                        <span className="hidden sm:inline" aria-hidden="true">GitHub</span>
                     </a>
                 </div>
             </div>

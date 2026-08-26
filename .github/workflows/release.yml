@@ -37,11 +37,12 @@ jobs:
 
       - name: Publish to npm
         run: |
-          if [[ "${{ github.ref_name }}" == *"alpha"* ]]; then
+          ref="${GITHUB_REF_NAME,,}"
+          if [[ "$ref" == *"alpha"* ]]; then
             pnpm publish --access public --no-git-checks --tag alpha
-          elif [[ "${{ github.ref_name }}" == *"beta"* ]]; then
+          elif [[ "$ref" == *"beta"* ]]; then
             pnpm publish --access public --no-git-checks --tag beta
-          elif [[ "${{ github.ref_name }}" == *"rc"* ]]; then
+          elif [[ "$ref" == *"rc"* ]]; then
             pnpm publish --access public --no-git-checks --tag rc
           else
             pnpm publish --access public --no-git-checks
@@ -78,19 +79,21 @@ jobs:
         with:
           node-version: '26'
 
-      - run: npm i -g pnpm
-
-      - name: Install demo dependencies
-        working-directory: demo
-        run: pnpm install --frozen-lockfile
-
       # demo/ floats on @codehacks/virtual-console@latest for local dev, but
       # the demo published under this tag must be pinned to the exact
       # version this same workflow run just published - not whatever
-      # "latest" happens to resolve to.
-      - name: Pin the demo to the version just published
+      # "latest" happens to resolve to. `pnpm add` installs everything else
+      # too, so this doubles as the dependency install step. Retried since
+      # the registry may not have finished propagating the version yet.
+      - name: Install dependencies and pin the demo to the version just published
         working-directory: demo
-        run: pnpm add "@codehacks/virtual-console@${GITHUB_REF_NAME#v}"
+        run: |
+          for i in 1 2 3 4 5; do
+            pnpm add "@codehacks/virtual-console@${GITHUB_REF_NAME#v}" && exit 0
+            echo "npm registry not ready yet, retrying in 10s (attempt $i/5)..."
+            sleep 10
+          done
+          exit 1
 
       - name: Build demo
         working-directory: demo

@@ -53,7 +53,7 @@
         "install:import:published": "pnpm --dir examples/published/react-vite-import install",
         "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
         "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",
-        "install:demo": "pnpm --dir demo install",
+        "install:demo": "pnpm --dir demo install --frozen-lockfile",
 
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",
