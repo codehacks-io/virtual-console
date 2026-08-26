@@ -104,8 +104,6 @@ jobs:
       - name: Build demo
         working-directory: demo
         run: pnpm run build
-        env:
-          GITHUB_PAGES_BASE: /virtual-console/
 
       - uses: actions/configure-pages@v5
 

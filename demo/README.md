@@ -1,6 +1,6 @@
 # Demo site
 
-The public landing/demo page — [live at codehacks-io.github.io/virtual-console](https://codehacks-io.github.io/virtual-console/). This is **not** an integration reference; see [`examples/`](../examples) for minimal, copy-pasteable setup for both integration paths.
+The public landing/demo page — [live at virtual-console.codehacks.io](https://virtual-console.codehacks.io/). This is **not** an integration reference; see [`examples/`](../examples) for minimal, copy-pasteable setup for both integration paths.
 
 Standalone project (own `pnpm-workspace.yaml`), same reasoning as `examples/published/*` — see [`examples/README.md`](../examples/README.md): installs `@codehacks/virtual-console@latest` from npm, not local workspace source, so the demo always shows what a real install gets.
 
@@ -21,4 +21,4 @@ pnpm dev
 
 Redeployed automatically to GitHub Pages by `.github/workflows/release.yml`'s `deploy-demo` job, on every **stable** release tag (alpha/beta/rc are skipped, so a first-time visitor never lands on untested pre-release behavior). That job pins the demo to the exact version it just published (`pnpm add @codehacks/virtual-console@<version>`) rather than trusting `latest` to have propagated yet, then installs everything else with `--frozen-lockfile`.
 
-`GITHUB_PAGES_BASE` (set only by that workflow) controls the Vite `base` path, since GitHub Pages serves a project site under `/virtual-console/`, not `/`. Local dev and `pnpm build` without it are unaffected.
+Served from the `virtual-console.codehacks.io` custom domain (configured in the repo's Pages settings, not in code - no `CNAME` file needed for a workflow-based deploy). That means the site is always at root - no Vite `base` path config needed or wanted here, unlike a bare `github.io/<repo>/` project page.

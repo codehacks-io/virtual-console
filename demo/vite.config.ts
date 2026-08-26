@@ -3,13 +3,10 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { virtualConsoleVitePlugin } from '@codehacks/virtual-console/plugins/vite';
 
-// GitHub Pages serves a project site under /<repo>/, not /. Set only by the
-// deploy workflow (see .github/workflows/release.yml) - local dev and
-// `vite preview` are unaffected.
-const base = process.env.GITHUB_PAGES_BASE || '/';
-
 export default defineConfig({
-    base,
+    // Served from the virtual-console.codehacks.io custom domain, at root -
+    // no base path needed. (A bare github.io project page would need one,
+    // at /<repo>/, but that's not this site's URL.)
     server: { port: 5180 },
     plugins: [
         virtualConsoleVitePlugin({
