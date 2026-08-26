@@ -14,10 +14,11 @@ export default function Nav() {
                         href="https://www.npmjs.com/package/@codehacks/virtual-console"
                         target="_blank"
                         rel="noreferrer"
+                        aria-label="npm"
                         className="flex items-center gap-1.5 transition hover:text-neutral-100"
                     >
                         <Package className="size-4" />
-                        <span className="hidden sm:inline">npm</span>
+                        <span className="hidden sm:inline" aria-hidden="true">npm</span>
                     </a>
                     <a
                         href="https://github.com/codehacks-io/virtual-console"

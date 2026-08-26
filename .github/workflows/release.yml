@@ -79,13 +79,19 @@ jobs:
         with:
           node-version: '26'
 
+      # Frozen so every dependency except the one pinned below is exactly
+      # what's committed - not "whatever pnpm add's own resolution leaves
+      # everything else at."
+      - name: Install demo dependencies
+        working-directory: demo
+        run: pnpm install --frozen-lockfile
+
       # demo/ floats on @codehacks/virtual-console@latest for local dev, but
       # the demo published under this tag must be pinned to the exact
       # version this same workflow run just published - not whatever
-      # "latest" happens to resolve to. `pnpm add` installs everything else
-      # too, so this doubles as the dependency install step. Retried since
-      # the registry may not have finished propagating the version yet.
-      - name: Install dependencies and pin the demo to the version just published
+      # "latest" happens to resolve to. Retried since the registry may not
+      # have finished propagating the version yet.
+      - name: Pin the demo to the version just published
         working-directory: demo
         run: |
           for i in 1 2 3 4 5; do
