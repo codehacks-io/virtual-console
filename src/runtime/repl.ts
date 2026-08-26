@@ -1,6 +1,107 @@
 import { getConfig } from './config';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { addLog } from './ui';
+import { tokenize } from './tokenizer';
+import type { Token } from './tokenizer';
+
+/** Tokens that carry no structural meaning for the checks below. */
+function significantTokens(code: string): Token[] {
+    return tokenize(code).filter((t) => t.type !== 'whitespace' && t.type !== 'comment');
+}
+
+/**
+ * Evaluates REPL input in the global scope. A leading `{` is ambiguous in
+ * JS: `{a: 1}` parses as a block statement (with `a:` read as a label),
+ * not an object literal, so `eval` throws "Unexpected token ':'". Chrome's
+ * console works around this by wrapping such input in parentheses to force
+ * expression context; we do the same, falling back to the raw source if
+ * that wrapping itself doesn't parse (a genuine block statement).
+ *
+ * Detecting the leading `{` via the token stream (not `trimmed.startsWith`)
+ * means a leading comment - `// note\n{a: 1}` - doesn't defeat it.
+ */
+function evalReplCode(code: string): any {
+    const tokens = significantTokens(code);
+    const looksLikeObjectLiteral = tokens[0]?.type === 'punctuation' && tokens[0].value === '{';
+
+    if (looksLikeObjectLiteral) {
+        try {
+            // Newline-padded so a trailing line comment can't swallow the
+            // closing paren - `{a: 1} // note` would otherwise never parse.
+            return (0, eval)(`(\n${code}\n)`);
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                return (0, eval)(code);
+            }
+            throw err;
+        }
+    }
+    return (0, eval)(code);
+}
+
+const ASSIGNMENT_OPERATORS = new Set([
+    '=', '+=', '-=', '*=', '/=', '%=', '**=',
+    '&&=', '||=', '??=', '&=', '|=', '^=', '<<=', '>>=', '>>>='
+]);
+const MUTATING_OPERATORS = new Set(['++', '--']);
+
+/**
+ * The only keywords allowed in a previewed expression - an allowlist, not a
+ * blocklist, so anything not explicitly known to be side-effect-free fails
+ * closed. That matters most for the control-flow keywords: `while (true) {}`
+ * has no call, no assignment and no mutation, so a blocklist misses it and
+ * the preview would hang the host page on the user's own keystroke.
+ */
+const SAFE_EXPRESSION_KEYWORDS = new Set(['typeof', 'void', 'this', 'in', 'instanceof']);
+
+/**
+ * Decides whether `code` is safe to run just to preview its value while the
+ * user is still typing (ghost text) - i.e. whether it's free of anything
+ * that could have a side effect. A raw `code.includes('(')` (the previous
+ * approach) is both too strict - it blocks harmless grouping like
+ * `({a: 1})` or a string that merely *contains* a "(" character - and too
+ * loose - `x++` has no `(` or `=` at all but still mutates `x`. Reasoning
+ * over tokens instead of characters fixes both: a `(` only counts against
+ * safety when the token before it is something callable (an identifier,
+ * `)`, `]`, or `?.`), so grouping/object/array/arrow-parameter parens are
+ * left alone, and every assignment/update operator is checked explicitly
+ * rather than inferred from stray characters. Keywords go through an
+ * allowlist so statements - loops above all - can never reach `eval`.
+ *
+ * Known gaps (same as Chrome's own preview, or rare enough not to be worth
+ * the extra complexity): a getter invoked via plain property access can't
+ * be distinguished from a plain property read without actually running it;
+ * tagged template calls (`` tag`x` ``) aren't flagged since they don't
+ * involve a `(` at all.
+ */
+function isSafeToPreEvaluate(code: string): boolean {
+    const tokens = significantTokens(code);
+    if (tokens.length === 0) return false;
+
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (token.type === 'keyword' && !SAFE_EXPRESSION_KEYWORDS.has(token.value)) {
+            return false;
+        }
+
+        if (token.type === 'operator' && (ASSIGNMENT_OPERATORS.has(token.value) || MUTATING_OPERATORS.has(token.value))) {
+            return false;
+        }
+
+        if (token.type === 'punctuation' && token.value === '(') {
+            const prev = tokens[i - 1];
+            const isCall = !!prev && (
+                prev.type === 'identifier' ||
+                (prev.type === 'punctuation' && (prev.value === ')' || prev.value === ']')) ||
+                (prev.type === 'operator' && prev.value === '?.')
+            );
+            if (isCall) return false;
+        }
+    }
+
+    return true;
+}
 
 export class REPL {
     private history: string[] = [];
@@ -30,8 +131,7 @@ export class REPL {
         addLog([command], 'command');
 
         try {
-            // Use indirect eval to execute in global scope
-            const result = (0, eval)(command);
+            const result = evalReplCode(command);
             addLog([result], 'result');
             // The user requested syntax highlighting for output. 
             // addLog uses createObjectViewer which handles syntax highlighting for primitives and objects.
@@ -84,23 +184,10 @@ export class REPL {
      */
     preEvaluate(code: string): any {
         const trimmed = code.trim();
-        if (!trimmed) return undefined;
-
-        // Heuristic: Unsafe if it contains assignment or function calls (parentheses)
-        // We allow parentheses if they are part of a method call? No, that triggers side effects.
-        // We strictly disallow '(' and '=' for safety.
-        // Exception: We might want to allow property access like 'foo.bar'
-        if (trimmed.includes('(') || trimmed.includes('=')) {
-            return undefined;
-        }
+        if (!trimmed || !isSafeToPreEvaluate(trimmed)) return undefined;
 
         try {
-            // Check if it's a valid identifier or property access chain
-            // This prevents eval of things like "while(true)" although the '(' check helps.
-            // But "delete window.foo" is also bad.
-            if (trimmed.includes('delete ')) return undefined;
-
-            return (0, eval)(trimmed);
+            return evalReplCode(trimmed);
         } catch {
             return undefined;
         }

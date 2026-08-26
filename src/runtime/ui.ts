@@ -547,9 +547,12 @@ export function createConsole() {
         highlightBackdrop.className = 'virtual-console-highlight-backdrop';
         inputWrapper.appendChild(highlightBackdrop);
 
-        // Input Field
-        const input = document.createElement('input');
-        input.type = 'text';
+        // Input Field - a <textarea> (not <input>) so Shift+Enter can insert
+        // a real newline for multi-line commands; see setupREPL for the
+        // Enter-executes/Shift+Enter-inserts-newline key handling and the
+        // auto-grow-to-content sizing.
+        const input = document.createElement('textarea');
+        input.rows = 1;
         input.className = 'virtual-console-input';
         input.placeholder = 'Run command...';
         input.setAttribute('aria-label', 'Console command input');
@@ -628,7 +631,7 @@ export function destroyConsole() {
 
 
 function setupREPL(
-    input: HTMLInputElement,
+    input: HTMLTextAreaElement,
     runBtn: HTMLButtonElement,
     ghostText: HTMLElement,
     suggestionsBox: HTMLElement,
@@ -648,6 +651,13 @@ function setupREPL(
         highlightBackdrop.innerHTML = highlightCode(code);
     }, 50);
 
+    // Grows the textarea to fit its content (up to the CSS max-height, past
+    // which it scrolls) instead of staying a fixed single-line box.
+    const autosize = () => {
+        input.style.height = 'auto';
+        input.style.height = `${input.scrollHeight}px`;
+    };
+
     const execute = () => {
         const cmd = input.value;
         if (cmd) {
@@ -656,6 +666,7 @@ function setupREPL(
             highlightBackdrop.innerHTML = '';
             ghostText.textContent = '';
             suggestionsBox.style.display = 'none';
+            autosize();
 
             // Scroll to bottom to show new log and REPL
             if (logsContainer) {
@@ -668,23 +679,40 @@ function setupREPL(
 
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            execute();
+            // Shift+Enter inserts a real newline (native textarea behavior,
+            // left alone); plain Enter runs the command.
+            if (!e.shiftKey) {
+                e.preventDefault();
+                execute();
+            }
         } else if (e.key === 'ArrowUp') {
-            const prev = repl.getHistoryPrevious();
-            if (prev !== null) {
-                input.value = prev;
-                input.dispatchEvent(new Event('input'));
-                // Move cursor to end
-                setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+            // Only step through history when the caret is already on the
+            // first line - otherwise arrow keys should move within a
+            // multi-line command like they would in any other textarea.
+            const caret = input.selectionStart ?? 0;
+            const onFirstLine = !input.value.slice(0, caret).includes('\n');
+            if (onFirstLine) {
+                const prev = repl.getHistoryPrevious();
+                if (prev !== null) {
+                    input.value = prev;
+                    input.dispatchEvent(new Event('input'));
+                    // Move cursor to end
+                    setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+                }
+                e.preventDefault();
             }
-            e.preventDefault();
         } else if (e.key === 'ArrowDown') {
-            const next = repl.getHistoryNext();
-            if (next !== null) {
-                input.value = next;
-                input.dispatchEvent(new Event('input'));
+            // Same idea as ArrowUp: only touch history from the last line.
+            const caret = input.selectionEnd ?? input.value.length;
+            const onLastLine = !input.value.slice(caret).includes('\n');
+            if (onLastLine) {
+                const next = repl.getHistoryNext();
+                if (next !== null) {
+                    input.value = next;
+                    input.dispatchEvent(new Event('input'));
+                }
+                e.preventDefault();
             }
-            e.preventDefault();
         } else if (e.key === 'Tab') {
             // Accept first suggestion
             if (suggestionsBox.style.display !== 'none' && suggestionsBox.firstChild) {
@@ -709,6 +737,7 @@ function setupREPL(
     input.addEventListener('input', () => {
         const val = input.value;
 
+        autosize();
         updateHighlight(val);
 
         // Pre-evaluation preview
