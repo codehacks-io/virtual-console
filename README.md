@@ -158,6 +158,8 @@ See [examples/README.md](examples/README.md) for the full layout (local workspac
 
 See [DECISIONS.md](DECISIONS.md) for the rationale behind non-obvious choices (REPL evaluation safety, DevTools-parity scope, known/accepted limitations) before proposing a change in those areas.
 
+See [CLAUDE.md](CLAUDE.md) for the engineering standards contributors (human or AI) are expected to hold to in this repo.
+
 ## License
 
 MIT
