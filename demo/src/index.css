@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+    --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+}
+
+::selection {
+    background: rgb(34 211 238 / 0.3);
+}

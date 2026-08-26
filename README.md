@@ -2,6 +2,8 @@
 
 A mobile-friendly virtual console for debugging web applications. Use it through an explicit runtime import or through the Vite plugin when you want early injection before your app mounts.
 
+**[Try the live demo →](https://codehacks-io.github.io/virtual-console/)** — no install required. Or [open the demo source in StackBlitz](https://stackblitz.com/github/codehacks-io/virtual-console/tree/main/demo) to run and edit it in-browser.
+
 ## Features
 
 - 📱 **Mobile Friendly**: Toggle with 2-finger long press or Shift+C.
@@ -152,9 +154,17 @@ pnpm dev:vite-plugin:local
 
 # Build local workspace examples
 pnpm build:local
+
+# Run the public demo site (examples/vs-demo note below)
+pnpm dev:demo
+
+# Build the public demo site
+pnpm build:demo
 ```
 
 See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
+
+See [demo/README.md](demo/README.md) for the public demo site (`demo/`) - it's not one of the examples above; it's the landing page at [codehacks-io.github.io/virtual-console](https://codehacks-io.github.io/virtual-console/), redeployed automatically on every stable release.
 
 See [DECISIONS.md](DECISIONS.md) for the rationale behind non-obvious choices (REPL evaluation safety, DevTools-parity scope, known/accepted limitations) before proposing a change in those areas.
 

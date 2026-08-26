@@ -1,0 +1,12 @@
+allowBuilds:
+  esbuild: true
+onlyBuiltDependencies:
+  - esbuild
+# @codehacks/virtual-console is our own package, published by us, so pnpm's
+# minimumReleaseAge "wait before trusting a freshly-published package"
+# supply-chain guard doesn't apply the way it does for third-party deps -
+# exclude it so this app isn't blocked for ~24h after every release. (The
+# deploy workflow re-pins this dependency to an exact version anyway - see
+# demo/README.md - so this only matters for local dev.)
+minimumReleaseAgeExclude:
+  - '@codehacks/virtual-console'

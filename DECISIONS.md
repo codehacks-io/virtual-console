@@ -89,9 +89,44 @@ so nobody spends time trying to close them:
   `ArrowUp`/`ArrowDown` only step through history when the caret is on the first/last line, so they
   move the cursor normally everywhere else in a multi-line command.
 
+## The public demo (`demo/`) is not one of the integration examples
+
+`demo/` is a separate app from `examples/*` on purpose. The `examples/*` apps exist to prove each
+integration path works and stay minimal by design; a public-facing "why should I care" landing
+page has different goals (visual polish, a hero pitch, a live interactive demo area) and would
+have compromised the examples' minimalism if bolted onto one of them. It still uses the Vite
+plugin's early-injection method under the hood - that's the strongest proof of the project's core
+"survives your app crashing" pitch - and, like `examples/published/*`, installs the real npm
+package rather than local workspace source.
+
+**Deploy trigger and version pinning:** the `deploy-demo` job in `release.yml` runs after a
+successful publish, gated to stable tags only (`!contains(ref, 'alpha'|'beta'|'rc')`) so a
+first-time visitor never lands on untested pre-release behavior. It pins the demo's dependency to
+the exact version that same run just published (`pnpm add @codehacks/virtual-console@<version>`)
+rather than trusting `@latest` to have resolved through npm's registry yet - same
+["Build inputs are declared, never discovered"](CLAUDE.md#build-inputs-are-declared-never-discovered)
+principle, just applied to a version number instead of a git hash.
+
+**`pnpm-lock.yaml` is committed here, unlike `examples/published/*`.** That precedent's whole
+justification for an uncommitted lockfile is "float on `@latest`" for the one dependency that
+matters. `demo/` already gets that from the explicit `pnpm add ...@<version>` pin above - so an
+uncommitted lockfile wasn't protecting `@codehacks/virtual-console`'s freshness at all, it was just
+letting every *other* dependency (React, Vite, Tailwind, ...) drift unreproducibly on every
+install, local or CI. Committed the lockfile instead and switched the deploy job to
+`pnpm install --frozen-lockfile` - reproducible everywhere except the one dependency that's
+supposed to move, which still does, deliberately, via the explicit pin.
+
+**Requires the repo to be public.** GitHub Pages is unavailable for private repos below a paid
+org plan, and an anonymous visitor can't open a private repo in StackBlitz either - there's no way
+to satisfy "one-click demo, no install" while the source stays private. The repo was made public
+for this reason (2026-08-26), which also required an org-level `members_can_create_pages` policy
+to be enabled - a broader-scoped, org-wide change that was called out and confirmed separately
+before touching it, since it wasn't implied by "make this one repo public."
+
 ## Where to find the rest
 
 - [README.md](README.md) - installation, configuration, and the `replEnabled: false` escape hatch
   for shipping a zero-`eval` build.
 - [examples/README.md](examples/README.md) - local workspace examples vs. standalone
   published-package examples.
+- [demo/README.md](demo/README.md) - the public demo site and how its deploy works.

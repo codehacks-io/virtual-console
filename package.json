@@ -40,6 +40,7 @@
         "dev:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import dev",
         "dev:vite-plugin:local": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-plugin dev",
         "dev:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin dev",
+        "dev:demo": "pnpm run install:demo && pnpm --dir demo dev",
 
         "build:import:local": "pnpm build && pnpm --filter @codehacks/react-vite-local-import build",
         "build:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import build",
@@ -47,10 +48,12 @@
         "build:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin build",
         "build:local": "pnpm run build:import:local && pnpm run build:vite-plugin:local",
         "build:published": "pnpm run build:import:published && pnpm run build:vite-plugin:published",
+        "build:demo": "pnpm run install:demo && pnpm --dir demo build",
 
         "install:import:published": "pnpm --dir examples/published/react-vite-import install",
         "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
         "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",
+        "install:demo": "pnpm --dir demo install",
 
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",
