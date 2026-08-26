@@ -88,6 +88,25 @@
   gap: 6px;
 }
 
+/* Resets the title's uppercase/letter-spacing/weight so "v0.6.0" doesn't
+   inherit them; opacity compounds with .virtual-console-title's own 0.8. */
+.virtual-console-version {
+  font-size: 9px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+  color: var(--vc-timestamp);
+  opacity: 0.6;
+}
+
+/* opacity: 1 - it still composites through the parent's 0.6, so stacking
+   another opacity here would make it dimmer, not more visible. */
+.virtual-console-version-local {
+  color: var(--vc-log-warn);
+  opacity: 1;
+}
+
 .virtual-console-controls {
   display: flex;
   gap: 2px;

@@ -17,6 +17,44 @@ describe('createConsole', () => {
         expect(document.querySelectorAll('.virtual-console-logs').length).toBe(1);
     });
 
+    describe('version badge', () => {
+        // vitest doesn't run the tsup `define` step that normally replaces
+        // __VC_VERSION__/__VC_BUILD_ID__ at build time, so each test sets
+        // them as real globals (or deletes them) to exercise a specific
+        // branch of the typeof-guarded fallback in ui.ts.
+        afterEach(() => {
+            delete (globalThis as any).__VC_VERSION__;
+            delete (globalThis as any).__VC_BUILD_ID__;
+        });
+
+        it('falls back to "vdev+local" when neither constant was defined', () => {
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('vdev+local');
+            expect(version.querySelector('.virtual-console-version-local')).not.toBeNull();
+        });
+
+        it('shows the release commit as semver build metadata', () => {
+            (globalThis as any).__VC_VERSION__ = '1.2.3';
+            (globalThis as any).__VC_BUILD_ID__ = 'a3f9c21';
+
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('v1.2.3+a3f9c21');
+            expect(version.querySelector('.virtual-console-version-local')).toBeNull();
+        });
+
+        it('marks a build made outside the release workflow as local', () => {
+            (globalThis as any).__VC_VERSION__ = '1.2.3';
+            (globalThis as any).__VC_BUILD_ID__ = 'local';
+
+            createConsole();
+            const version = document.querySelector('.virtual-console-version')!;
+            expect(version.textContent).toBe('v1.2.3+local');
+            expect(version.querySelector('.virtual-console-version-local')?.textContent).toBe('local');
+        });
+    });
+
     it('promotes a static custom target to position:relative and docks the console absolutely', () => {
         const target = document.createElement('div');
         document.body.appendChild(target);

@@ -1,6 +1,6 @@
 {
     "name": "@codehacks/virtual-console",
-    "version": "0.6.0",
+    "version": "0.7.0-rc.0",
     "description": "A bullet-proof virtual console for mobile debugging and error catching",
     "type": "module",
     "sideEffects": [
