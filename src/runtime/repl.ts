@@ -26,7 +26,9 @@ function evalReplCode(code: string): any {
 
     if (looksLikeObjectLiteral) {
         try {
-            return (0, eval)(`(${code})`);
+            // Newline-padded so a trailing line comment can't swallow the
+            // closing paren - `{a: 1} // note` would otherwise never parse.
+            return (0, eval)(`(\n${code}\n)`);
         } catch (err) {
             if (err instanceof SyntaxError) {
                 return (0, eval)(code);
@@ -42,7 +44,15 @@ const ASSIGNMENT_OPERATORS = new Set([
     '&&=', '||=', '??=', '&=', '|=', '^=', '<<=', '>>=', '>>>='
 ]);
 const MUTATING_OPERATORS = new Set(['++', '--']);
-const UNSAFE_KEYWORDS = new Set(['new', 'delete', 'await', 'yield', 'import']);
+
+/**
+ * The only keywords allowed in a previewed expression - an allowlist, not a
+ * blocklist, so anything not explicitly known to be side-effect-free fails
+ * closed. That matters most for the control-flow keywords: `while (true) {}`
+ * has no call, no assignment and no mutation, so a blocklist misses it and
+ * the preview would hang the host page on the user's own keystroke.
+ */
+const SAFE_EXPRESSION_KEYWORDS = new Set(['typeof', 'void', 'this', 'in', 'instanceof']);
 
 /**
  * Decides whether `code` is safe to run just to preview its value while the
@@ -54,8 +64,9 @@ const UNSAFE_KEYWORDS = new Set(['new', 'delete', 'await', 'yield', 'import']);
  * over tokens instead of characters fixes both: a `(` only counts against
  * safety when the token before it is something callable (an identifier,
  * `)`, `]`, or `?.`), so grouping/object/array/arrow-parameter parens are
- * left alone, and every assignment/update/`new`/`delete` operator is
- * checked explicitly rather than inferred from stray characters.
+ * left alone, and every assignment/update operator is checked explicitly
+ * rather than inferred from stray characters. Keywords go through an
+ * allowlist so statements - loops above all - can never reach `eval`.
  *
  * Known gaps (same as Chrome's own preview, or rare enough not to be worth
  * the extra complexity): a getter invoked via plain property access can't
@@ -70,7 +81,7 @@ function isSafeToPreEvaluate(code: string): boolean {
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
-        if (token.type === 'keyword' && UNSAFE_KEYWORDS.has(token.value)) {
+        if (token.type === 'keyword' && !SAFE_EXPRESSION_KEYWORDS.has(token.value)) {
             return false;
         }
 

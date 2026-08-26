@@ -29,6 +29,18 @@ describe('tokenize', () => {
         expect(tokens[0]).toEqual({ type: 'punctuation', value: '{' });
     });
 
+    it.each(['gen.return', 'Array.from', 'mod.default', 'obj?.class', 'a . default'])(
+        'treats a reserved word after member access as a property name in %j',
+        (code) => {
+            const last = tokenize(code).filter((t) => t.type !== 'whitespace').at(-1)!;
+            expect(last.type).toBe('identifier');
+        }
+    );
+
+    it('still treats the same word as a keyword when it is not a property name', () => {
+        expect(tokenize('return x')[0]).toEqual({ type: 'keyword', value: 'return' });
+    });
+
     it('classifies keywords, booleans, numbers, and identifiers separately', () => {
         const tokens = tokenize('let x = true');
         expect(tokens.filter((t) => t.type !== 'whitespace')).toEqual([

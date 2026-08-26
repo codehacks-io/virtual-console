@@ -53,6 +53,46 @@ describe('REPL', () => {
             expect(repl.preEvaluate('new Date()')).toBeUndefined();
         });
 
+        // Loop conditions here are deliberately `false` / already-exhausted:
+        // if this protection ever regresses, these tests must FAIL, not hang
+        // the test runner (or, in a real browser, the host page) forever.
+        it.each([
+            'while (false) {}',
+            'do {} while (false)',
+            'for (;false;) {}',
+            'if (true) {}',
+            'return 1',
+            'function f() {}',
+            'class C {}'
+        ])('refuses to preview the statement %j - a statement is never just a value', (code) => {
+            expect(repl.preEvaluate(code)).toBeUndefined();
+        });
+
+        it('refuses to preview a method call whose name is a reserved word', () => {
+            (globalThis as any).__replTestGen = {
+                calls: 0,
+                // `return` and `throw` are real generator-protocol method
+                // names, and legal property names generally.
+                return() { (globalThis as any).__replTestGen.calls++; return 'ran'; }
+            };
+
+            expect(repl.preEvaluate('__replTestGen.return()')).toBeUndefined();
+            expect((globalThis as any).__replTestGen.calls).toBe(0);
+
+            delete (globalThis as any).__replTestGen;
+        });
+
+        it('previews a property whose name is a reserved word', () => {
+            (globalThis as any).__replTestMod = { default: 42 };
+            expect(repl.preEvaluate('__replTestMod.default')).toBe(42);
+            delete (globalThis as any).__replTestMod;
+        });
+
+        it('previews expression-only keywords', () => {
+            expect(repl.preEvaluate('typeof 1')).toBe('number');
+            expect(repl.preEvaluate('[] instanceof Array')).toBe(true);
+        });
+
         it('refuses to preview an assignment but allows a comparison', () => {
             expect(repl.preEvaluate('1 === 1')).toBe(true);
             (globalThis as any).__replTestVar = 1;
@@ -85,6 +125,15 @@ describe('REPL', () => {
         it('evaluates a leading-comment object literal - the comment does not defeat the { detection', () => {
             createConsole();
             repl.execute('// note\n{a: 1}');
+
+            expect(document.querySelector('.virtual-console-log-error')).toBeNull();
+            const result = document.querySelector('.virtual-console-log-result .virtual-console-content')!;
+            expect(result.querySelector('.vc-object-type')?.textContent).toBe('Object(1)');
+        });
+
+        it('evaluates an object literal followed by a trailing line comment', () => {
+            createConsole();
+            repl.execute('{a: 1} // note');
 
             expect(document.querySelector('.virtual-console-log-error')).toBeNull();
             const result = document.querySelector('.virtual-console-log-result .virtual-console-content')!;

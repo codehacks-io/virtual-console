@@ -31,7 +31,7 @@ export interface Token {
     value: string;
 }
 
-export const KEYWORDS = new Set([
+const KEYWORDS = new Set([
     'var', 'let', 'const', 'if', 'else', 'for', 'while', 'do', 'return',
     'function', 'class', 'new', 'try', 'catch', 'finally', 'switch', 'case',
     'break', 'continue', 'default', 'import', 'export', 'from', 'async',
@@ -39,7 +39,7 @@ export const KEYWORDS = new Set([
     'extends', 'super', 'throw', 'yield', 'debugger'
 ]);
 
-export const BOOLEANS = new Set(['true', 'false', 'null', 'undefined']);
+const BOOLEANS = new Set(['true', 'false', 'null', 'undefined']);
 
 const PUNCTUATION = new Set(['(', ')', '{', '}', '[', ']', ',', ';', ':', '.']);
 
@@ -53,6 +53,22 @@ const MULTI_CHAR_OPERATORS = [
 ];
 
 const SINGLE_CHAR_OPERATORS = new Set(['+', '-', '*', '/', '%', '=', '&', '|', '<', '>', '!', '^', '~', '?']);
+
+/**
+ * The most recent token that carries structural meaning, skipping back over
+ * trivia. Cheap in practice: a whitespace run is already collapsed into a
+ * single token, so this walks past a handful of entries at most, and since
+ * it stops at the first significant token the runs never overlap.
+ */
+function lastSignificantToken(tokens: Token[]): Token | null {
+    for (let i = tokens.length - 1; i >= 0; i--) {
+        const token = tokens[i];
+        if (token.type !== 'whitespace' && token.type !== 'comment') {
+            return token;
+        }
+    }
+    return null;
+}
 
 export function tokenize(code: string): Token[] {
     const tokens: Token[] = [];
@@ -161,7 +177,20 @@ export function tokenize(code: string): Token[] {
                 i++;
             }
 
-            if (KEYWORDS.has(value)) {
+            // A word directly after `.` / `?.` is a property name, never a
+            // keyword - JS allows reserved words there (`gen.return()`,
+            // `Array.from`, `mod.default`). Classifying those as keywords
+            // both mis-colors them and, worse, hides the call from
+            // repl.ts's "is the token before `(` callable" check.
+            const prev = lastSignificantToken(tokens);
+            const afterMemberAccess = prev !== null && (
+                (prev.type === 'punctuation' && prev.value === '.') ||
+                (prev.type === 'operator' && prev.value === '?.')
+            );
+
+            if (afterMemberAccess) {
+                tokens.push({ type: 'identifier', value });
+            } else if (KEYWORDS.has(value)) {
                 tokens.push({ type: 'keyword', value });
             } else if (BOOLEANS.has(value)) {
                 tokens.push({ type: 'boolean', value });
