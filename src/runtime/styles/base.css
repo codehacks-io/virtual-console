@@ -102,7 +102,7 @@
 
 /* opacity: 1 - it still composites through the parent's 0.6, so stacking
    another opacity here would make it dimmer, not more visible. */
-.virtual-console-version-dirty {
+.virtual-console-version-local {
   color: var(--vc-log-warn);
   opacity: 1;
 }

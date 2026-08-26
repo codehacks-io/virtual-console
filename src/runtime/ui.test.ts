@@ -19,52 +19,39 @@ describe('createConsole', () => {
 
     describe('version badge', () => {
         // vitest doesn't run the tsup `define` step that normally replaces
-        // __VC_VERSION__/__VC_GIT_HASH__/__VC_GIT_DIRTY__ at build time, so
-        // each test sets them as real globals (or deletes them) to exercise
-        // a specific branch of the typeof-guarded fallback in ui.ts.
+        // __VC_VERSION__/__VC_BUILD_ID__ at build time, so each test sets
+        // them as real globals (or deletes them) to exercise a specific
+        // branch of the typeof-guarded fallback in ui.ts.
         afterEach(() => {
             delete (globalThis as any).__VC_VERSION__;
-            delete (globalThis as any).__VC_GIT_HASH__;
-            delete (globalThis as any).__VC_GIT_DIRTY__;
+            delete (globalThis as any).__VC_BUILD_ID__;
         });
 
-        it('falls back to a bare "vdev" when none of the constants were defined', () => {
+        it('falls back to "vdev+local" when neither constant was defined', () => {
             createConsole();
             const version = document.querySelector('.virtual-console-version')!;
-            expect(version.textContent).toBe('vdev');
-            expect(version.querySelector('.virtual-console-version-dirty')).toBeNull();
+            expect(version.textContent).toBe('vdev+local');
+            expect(version.querySelector('.virtual-console-version-local')).not.toBeNull();
         });
 
-        it('appends the commit hash as semver build metadata for a clean build', () => {
+        it('shows the release commit as semver build metadata', () => {
             (globalThis as any).__VC_VERSION__ = '1.2.3';
-            (globalThis as any).__VC_GIT_HASH__ = 'a3f9c21';
-            (globalThis as any).__VC_GIT_DIRTY__ = false;
+            (globalThis as any).__VC_BUILD_ID__ = 'a3f9c21';
 
             createConsole();
             const version = document.querySelector('.virtual-console-version')!;
             expect(version.textContent).toBe('v1.2.3+a3f9c21');
-            expect(version.querySelector('.virtual-console-version-dirty')).toBeNull();
+            expect(version.querySelector('.virtual-console-version-local')).toBeNull();
         });
 
-        it('flags an uncommitted-changes build, even though it reports the same version number as a clean one', () => {
+        it('marks a build made outside the release workflow as local', () => {
             (globalThis as any).__VC_VERSION__ = '1.2.3';
-            (globalThis as any).__VC_GIT_HASH__ = 'a3f9c21';
-            (globalThis as any).__VC_GIT_DIRTY__ = true;
+            (globalThis as any).__VC_BUILD_ID__ = 'local';
 
             createConsole();
             const version = document.querySelector('.virtual-console-version')!;
-            expect(version.textContent).toBe('v1.2.3+a3f9c21.dirty');
-            expect(version.querySelector('.virtual-console-version-dirty')?.textContent).toBe('.dirty');
-        });
-
-        it('omits the build suffix entirely when no git hash was available at build time', () => {
-            (globalThis as any).__VC_VERSION__ = '1.2.3';
-            (globalThis as any).__VC_GIT_HASH__ = '';
-            (globalThis as any).__VC_GIT_DIRTY__ = true;
-
-            createConsole();
-            const version = document.querySelector('.virtual-console-version')!;
-            expect(version.textContent).toBe('v1.2.3');
+            expect(version.textContent).toBe('v1.2.3+local');
+            expect(version.querySelector('.virtual-console-version-local')?.textContent).toBe('local');
         });
     });
 

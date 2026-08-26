@@ -74,14 +74,11 @@ declare global {
     const __VC_VERSION__: string;
 
     /**
-     * Short git commit hash this build came from, `''` if unavailable at
-     * build time - see tsup.config.ts. Same typeof-guard rule as
-     * __VC_VERSION__.
+     * Short commit hash for a build produced by the release workflow, or
+     * `'local'` for one built anywhere else - see tsup.config.ts. Same
+     * typeof-guard rule as __VC_VERSION__.
      */
-    const __VC_GIT_HASH__: string;
-
-    /** Whether the working tree had uncommitted changes at build time. */
-    const __VC_GIT_DIRTY__: boolean;
+    const __VC_BUILD_ID__: string;
 
     interface Window {
         __VIRTUAL_CONSOLE_GLOBAL__?: {

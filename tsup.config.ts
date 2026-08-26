@@ -1,28 +1,16 @@
-import { execSync } from 'node:child_process';
 import { defineConfig } from 'tsup';
 import pkg from './package.json' with { type: 'json' };
 
-function runGit(cmd: string): string {
-    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-}
-
-/** Captured once at build time so consumers never need git installed. */
-function getGitInfo(): { hash: string; dirty: boolean } {
-    try {
-        return { hash: runGit('git rev-parse --short HEAD'), dirty: runGit('git status --porcelain').length > 0 };
-    } catch {
-        return { hash: '', dirty: false };
-    }
-}
-
-const git = getGitInfo();
+// Commit is supplied by the release workflow (VC_GIT_SHA), not looked up
+// here - a build must not depend on ambient VCS state. Anything built
+// outside that workflow is identified as 'local'.
+const gitSha = process.env.VC_GIT_SHA ?? '';
 
 // Baked into the runtime bundle as compile-time constants - see
-// __VC_VERSION__ / __VC_GIT_HASH__ / __VC_GIT_DIRTY__ in src/runtime/types.ts.
+// __VC_VERSION__ / __VC_BUILD_ID__ in src/runtime/types.ts.
 const versionDefine = {
     __VC_VERSION__: JSON.stringify(pkg.version),
-    __VC_GIT_HASH__: JSON.stringify(git.hash),
-    __VC_GIT_DIRTY__: JSON.stringify(git.dirty)
+    __VC_BUILD_ID__: JSON.stringify(gitSha ? gitSha.slice(0, 7) : 'local')
 };
 
 export default defineConfig([

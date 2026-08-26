@@ -482,22 +482,22 @@ export function createConsole() {
 
     // Small, dim label in the header, not a log line.
     const version = typeof __VC_VERSION__ !== 'undefined' ? __VC_VERSION__ : 'dev';
-    const gitHash = typeof __VC_GIT_HASH__ !== 'undefined' ? __VC_GIT_HASH__ : '';
-    const gitDirty = typeof __VC_GIT_DIRTY__ !== 'undefined' ? __VC_GIT_DIRTY__ : false;
+    const buildId = typeof __VC_BUILD_ID__ !== 'undefined' ? __VC_BUILD_ID__ : 'local';
+    const isLocalBuild = buildId === 'local';
 
     const versionEl = document.createElement('span');
     versionEl.className = 'virtual-console-version';
-    versionEl.append(gitHash ? `v${version}+${gitHash}` : `v${version}`);
-    versionEl.title = gitHash
-        ? `Virtual Console v${version} - built from commit ${gitHash}${gitDirty ? ', with uncommitted changes' : ''}`
-        : `Virtual Console v${version}`;
+    versionEl.append(`v${version}+`);
+    versionEl.title = isLocalBuild
+        ? `Virtual Console v${version} - local build`
+        : `Virtual Console v${version} - build ${buildId}`;
 
-    if (gitHash && gitDirty) {
-        const dirtyEl = document.createElement('span');
-        dirtyEl.className = 'virtual-console-version-dirty';
-        dirtyEl.textContent = '.dirty';
-        versionEl.appendChild(dirtyEl);
+    const buildEl = document.createElement('span');
+    buildEl.textContent = buildId;
+    if (isLocalBuild) {
+        buildEl.className = 'virtual-console-version-local';
     }
+    versionEl.appendChild(buildEl);
 
     title.appendChild(versionEl);
 
