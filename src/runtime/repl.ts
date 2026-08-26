@@ -1,6 +1,13 @@
 import { getConfig } from './config';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { addLog } from './ui';
+import { tokenize } from './tokenizer';
+import type { Token } from './tokenizer';
+
+/** Tokens that carry no structural meaning for the checks below. */
+function significantTokens(code: string): Token[] {
+    return tokenize(code).filter((t) => t.type !== 'whitespace' && t.type !== 'comment');
+}
 
 /**
  * Evaluates REPL input in the global scope. A leading `{` is ambiguous in
@@ -9,10 +16,15 @@ import { addLog } from './ui';
  * console works around this by wrapping such input in parentheses to force
  * expression context; we do the same, falling back to the raw source if
  * that wrapping itself doesn't parse (a genuine block statement).
+ *
+ * Detecting the leading `{` via the token stream (not `trimmed.startsWith`)
+ * means a leading comment - `// note\n{a: 1}` - doesn't defeat it.
  */
 function evalReplCode(code: string): any {
-    const trimmed = code.trim();
-    if (trimmed.startsWith('{')) {
+    const tokens = significantTokens(code);
+    const looksLikeObjectLiteral = tokens[0]?.type === 'punctuation' && tokens[0].value === '{';
+
+    if (looksLikeObjectLiteral) {
         try {
             return (0, eval)(`(${code})`);
         } catch (err) {
@@ -23,6 +35,61 @@ function evalReplCode(code: string): any {
         }
     }
     return (0, eval)(code);
+}
+
+const ASSIGNMENT_OPERATORS = new Set([
+    '=', '+=', '-=', '*=', '/=', '%=', '**=',
+    '&&=', '||=', '??=', '&=', '|=', '^=', '<<=', '>>=', '>>>='
+]);
+const MUTATING_OPERATORS = new Set(['++', '--']);
+const UNSAFE_KEYWORDS = new Set(['new', 'delete', 'await', 'yield', 'import']);
+
+/**
+ * Decides whether `code` is safe to run just to preview its value while the
+ * user is still typing (ghost text) - i.e. whether it's free of anything
+ * that could have a side effect. A raw `code.includes('(')` (the previous
+ * approach) is both too strict - it blocks harmless grouping like
+ * `({a: 1})` or a string that merely *contains* a "(" character - and too
+ * loose - `x++` has no `(` or `=` at all but still mutates `x`. Reasoning
+ * over tokens instead of characters fixes both: a `(` only counts against
+ * safety when the token before it is something callable (an identifier,
+ * `)`, `]`, or `?.`), so grouping/object/array/arrow-parameter parens are
+ * left alone, and every assignment/update/`new`/`delete` operator is
+ * checked explicitly rather than inferred from stray characters.
+ *
+ * Known gaps (same as Chrome's own preview, or rare enough not to be worth
+ * the extra complexity): a getter invoked via plain property access can't
+ * be distinguished from a plain property read without actually running it;
+ * tagged template calls (`` tag`x` ``) aren't flagged since they don't
+ * involve a `(` at all.
+ */
+function isSafeToPreEvaluate(code: string): boolean {
+    const tokens = significantTokens(code);
+    if (tokens.length === 0) return false;
+
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+
+        if (token.type === 'keyword' && UNSAFE_KEYWORDS.has(token.value)) {
+            return false;
+        }
+
+        if (token.type === 'operator' && (ASSIGNMENT_OPERATORS.has(token.value) || MUTATING_OPERATORS.has(token.value))) {
+            return false;
+        }
+
+        if (token.type === 'punctuation' && token.value === '(') {
+            const prev = tokens[i - 1];
+            const isCall = !!prev && (
+                prev.type === 'identifier' ||
+                (prev.type === 'punctuation' && (prev.value === ')' || prev.value === ']')) ||
+                (prev.type === 'operator' && prev.value === '?.')
+            );
+            if (isCall) return false;
+        }
+    }
+
+    return true;
 }
 
 export class REPL {
@@ -106,22 +173,9 @@ export class REPL {
      */
     preEvaluate(code: string): any {
         const trimmed = code.trim();
-        if (!trimmed) return undefined;
-
-        // Heuristic: Unsafe if it contains assignment or function calls (parentheses)
-        // We allow parentheses if they are part of a method call? No, that triggers side effects.
-        // We strictly disallow '(' and '=' for safety.
-        // Exception: We might want to allow property access like 'foo.bar'
-        if (trimmed.includes('(') || trimmed.includes('=')) {
-            return undefined;
-        }
+        if (!trimmed || !isSafeToPreEvaluate(trimmed)) return undefined;
 
         try {
-            // Check if it's a valid identifier or property access chain
-            // This prevents eval of things like "while(true)" although the '(' check helps.
-            // But "delete window.foo" is also bad.
-            if (trimmed.includes('delete ')) return undefined;
-
             return evalReplCode(trimmed);
         } catch {
             return undefined;
