@@ -32,6 +32,22 @@ that produced it. That belongs in a commit message or DECISIONS.md.
 - Don't restate *what* the code does if a reader can already see that.
 - One line beats a paragraph.
 
+## Relative links between repo files are verified, not eyeballed
+
+This repo cross-links docs from several different directory depths (root, `demo/`, `examples/`,
+`.github/`, `.github/ISSUE_TEMPLATE/`), and GitHub only renders issue/PR templates inside the "new
+issue"/"new PR" flow — never on a normal repo browse — so a broken link there is easy to ship
+unnoticed.
+
+Before committing a new or edited `[text](relative/path)` link, resolve it from the *linking
+file's* directory and confirm the target exists — don't hand-derive it, and don't trim a GitHub web
+URL (`.../blob/main/...`) into a relative path by eye; `blob/main/` is a GitHub rendering artifact,
+not a real path segment:
+
+```bash
+python3 -c "import os; print(os.path.exists(os.path.join(os.path.dirname('FILE'), 'LINK')))"
+```
+
 ## Elsewhere
 
 - [DECISIONS.md](DECISIONS.md) — why, for the non-obvious technical choices in this codebase.
