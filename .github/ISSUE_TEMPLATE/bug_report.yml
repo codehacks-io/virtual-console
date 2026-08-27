@@ -1,0 +1,114 @@
+name: Bug report
+description: Something in the console itself misbehaves
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The same symptom usually has a different cause in a `WKWebView` inside a native app than it
+        does in desktop Chrome, so the environment questions below aren't boilerplate — they're
+        normally what makes a report actionable.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of `@codehacks/virtual-console`?
+      placeholder: '0.7.6'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: integration
+    attributes:
+      label: Integration path
+      options:
+        - Explicit runtime import (installVirtualConsole)
+        - Vite plugin (virtualConsoleVitePlugin)
+        - Both
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where it happens
+      options:
+        - iOS WebView inside a native app
+        - iOS Safari / mobile browser
+        - Android WebView inside a native app
+        - Android Chrome / mobile browser
+        - Desktop browser
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Native shell, if any
+      description: Capacitor, Cordova, React Native WebView, a hand-written WKWebView, or N/A.
+      placeholder: 'Capacitor 7 / N/A'
+
+  - type: dropdown
+    id: app-rendered
+    attributes:
+      label: Did your own app render?
+      description: >-
+        This separates a console bug from a host-app bug. The console is designed to appear even
+        when your app doesn't, so knowing which side failed narrows it down fast.
+      options:
+        - Yes, my app rendered normally
+        - "No, my app showed a blank screen"
+        - My app rendered, then crashed
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        A minimal repro helps enormously. You can fork the StackBlitz demo linked from the README
+        if that's easier than describing it.
+      placeholder: |
+        1. Install with ...
+        2. Configure ...
+        3. Open on ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Your configuration
+      description: The options you passed to `installVirtualConsole()` or the Vite plugin.
+      render: typescript
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors
+      description: Any errors from the console itself. Redact anything sensitive from your app's logs.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: >-
+            I checked the "Known, accepted limitations" section of DECISIONS.md, and this isn't one
+            of them.
+          required: true

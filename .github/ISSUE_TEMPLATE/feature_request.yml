@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest a capability or improvement
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Worth knowing before you write this up: the scope of this project is deliberately
+        **DevTools parity, not a "god-level terminal"** — see
+        [DECISIONS.md](../blob/main/DECISIONS.md). Requests that grow the runtime beyond what a
+        browser DevTools console does are likely to be declined, not because they're bad ideas, but
+        because this ships into WebViews where bundle size and predictability matter.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you hitting?
+      description: >-
+        Describe the situation you're actually in, not just the feature you have in mind. The
+        underlying problem often has a cheaper solution than the one that first comes to mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried instead?
+      description: Workarounds you've used, or other tools that solve this well.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: This stays within DevTools-parity scope, or I've explained below why it should be an exception.
+          required: true
