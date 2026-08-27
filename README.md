@@ -1,15 +1,25 @@
 # Virtual Console
 
-A mobile-friendly virtual console for debugging web applications. Use it through an explicit runtime import or through the Vite plugin when you want early injection before your app mounts.
+DevTools-style console for the places that don't have DevTools — iOS WebViews, Android WebViews, any page where `console.log` goes nowhere. Logs, object inspector, and a REPL that reaches your app's live globals. Injects before your app boots — and runs whether your app boots, crashes, or never starts at all.
+
+Use it through an explicit runtime import, or through the Vite plugin when you want it injected before your app bundle runs.
+
+### Why this exists
+
+A `WKWebView` inside a native app can't be opened in Safari Web Inspector unless the app that hosts it sets [`isInspectable`](https://developer.apple.com/documentation/webkit/wkwebview/isinspectable), which defaults to `false` — so if you don't own the native shell, there is no console to open. Even when you do own it, an inspector you attach after the fact can't show you what already happened during boot. This console is rendered by the page itself, so it's attached from the first line of script, to everyone looking at the screen.
 
 **[Try the live demo →](https://virtual-console.codehacks.io/)** — no install required. Or [open the demo source in StackBlitz](https://stackblitz.com/github/codehacks-io/virtual-console/tree/main/demo) to run and edit it in-browser.
 
 ## Features
 
 - 📱 **Mobile Friendly**: Toggle with 2-finger long press or Shift+C.
+- 🚀 **Independent of Your App**: Rendered by the page, sharing no lifecycle with your framework — it's there even if your app never mounts.
 - 🔍 **Object Inspector**: Interactive viewer for Objects, Arrays, Maps, Sets, and more.
+- ⌨️ **Live REPL**: Evaluate expressions against your app's real globals, with a preview of the result as you type.
+- 🧯 **Catches What You'd Miss**: Intercepts `console.log`/`error`/`warn`/`info`/`debug`, plus uncaught errors and unhandled promise rejections.
 - 🎨 **Themable**: Comes with multiple themes (VSCode, Chrome Light, Dracula, Nord, Tokyo).
-- ⚡ **Vite Plugin**: Optional early injection for Vite apps.
+- ⚡ **Vite Plugin**: Optional injection before your app bundle runs, so boot-time logs aren't lost.
+- 📦 **Zero Runtime Dependencies**: Nothing pulled in at runtime; Vite is an optional peer.
 - 🔒 **No Telemetry**: Fully local and self-contained — see [Privacy](#privacy).
 
 ### Installation

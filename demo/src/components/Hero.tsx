@@ -24,8 +24,8 @@ export default function Hero() {
 
                 <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 text-balance">
                     Virtual Console injects before your bundle even runs — so you get logs, an
-                    object inspector, and a live REPL even if your app crashes before it ever
-                    mounts. Mobile-friendly. Nothing phones home.
+                    object inspector, and a live REPL whether your app boots, crashes, or never
+                    starts at all. Mobile-friendly. Nothing phones home.
                 </p>
 
                 <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">

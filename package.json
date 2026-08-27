@@ -1,7 +1,7 @@
 {
     "name": "@codehacks/virtual-console",
     "version": "0.7.4",
-    "description": "A bullet-proof virtual console for mobile debugging and error catching",
+    "description": "DevTools-style console for the places that don't have DevTools — iOS WebViews, Android WebViews, any page where console.log goes nowhere.",
     "type": "module",
     "sideEffects": [
         "./dist/plugin/client.js",
@@ -63,11 +63,19 @@
         "prepublishOnly": "pnpm build"
     },
     "keywords": [
-        "vite",
-        "plugin",
+        "webview",
+        "wkwebview",
+        "ios",
+        "devtools",
         "console",
         "debug",
+        "debugging",
+        "remote-debugging",
+        "repl",
+        "object-inspector",
         "mobile",
+        "vite",
+        "vite-plugin",
         "eruda",
         "vconsole"
     ],
