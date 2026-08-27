@@ -7,7 +7,7 @@ body:
       value: |
         Worth knowing before you write this up: the scope of this project is deliberately
         **DevTools parity, not a "god-level terminal"** — see
-        [DECISIONS.md](../blob/main/DECISIONS.md). Requests that grow the runtime beyond what a
+        [DECISIONS.md](../../DECISIONS.md). Requests that grow the runtime beyond what a
         browser DevTools console does are likely to be declined, not because they're bad ideas, but
         because this ships into WebViews where bundle size and predictability matter.
 

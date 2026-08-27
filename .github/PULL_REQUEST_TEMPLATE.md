@@ -13,7 +13,7 @@
 
 ## Checklist
 
-- [ ] If this touches REPL evaluation, DevTools-parity scope, or a known accepted limitation, I've read the relevant section of [DECISIONS.md](../blob/main/DECISIONS.md) and argued against its reasoning rather than around it
+- [ ] If this touches REPL evaluation, DevTools-parity scope, or a known accepted limitation, I've read the relevant section of [DECISIONS.md](../DECISIONS.md) and argued against its reasoning rather than around it
 - [ ] Any new non-obvious decision is recorded in DECISIONS.md, not in a code comment
 - [ ] Public API changes are reflected in the README
 
