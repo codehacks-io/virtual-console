@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Try the live demo
+    url: https://virtual-console.codehacks.io/
+    about: Reproduce it against the hosted demo before filing — it rules out your build setup.
+  - name: Security vulnerability
+    url: https://github.com/codehacks-io/virtual-console/security/advisories/new
+    about: Report privately instead of opening a public issue.
