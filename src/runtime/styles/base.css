@@ -298,6 +298,13 @@
   /* Space for icon */
 }
 
+.virtual-console-log-error .virtual-console-log-icon {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  margin: 0;
+}
+
 .virtual-console-log-success {
   color: var(--vc-log-success);
 }
@@ -311,26 +318,31 @@
   /* Space for icon */
 }
 
+.virtual-console-log-warn .virtual-console-log-icon {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  margin: 0;
+}
+
 .virtual-console-log-command {
   color: var(--vc-text);
   font-weight: bold;
-  position: relative;
-  padding-left: 16px;
-  /* Space for icon */
+  align-items: center;
 }
 
 .virtual-console-log-result {
   color: var(--vc-text);
-  position: relative;
-  padding-left: 16px;
-  /* Space for icon */
+  align-items: center;
   border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 
+/* Flex item (not absolutely positioned) so it centers against the text's
+   actual line box instead of a hand-tuned pixel offset that drifts out of
+   sync with font metrics. */
 .virtual-console-log-icon {
-  position: absolute;
-  left: 4px;
-  top: 4px;
+  flex-shrink: 0;
+  margin: 0 5px 0 4px;
 }
 
 .virtual-console-log-error .virtual-console-log-icon {
