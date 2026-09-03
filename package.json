@@ -1,6 +1,7 @@
 {
     "name": "@codehacks/virtual-console",
     "version": "0.7.6",
+    "packageManager": "pnpm@11.25.0",
     "description": "DevTools-style console for the places that don't have DevTools — iOS WebViews, Android WebViews, any page where console.log goes nowhere.",
     "type": "module",
     "sideEffects": [

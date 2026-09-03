@@ -13,15 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Install pnpm
-      uses: pnpm/action-setup@v6
+      uses: pnpm/setup@v2
       with:
-        version: 10
+        # Version comes from the "packageManager" field in package.json -
+        # one declared source of truth instead of a second copy here that
+        # can drift out of sync with what's pinned for local dev.
+        install: false
 
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: '26'
         cache: 'pnpm'
