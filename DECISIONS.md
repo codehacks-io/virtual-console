@@ -99,22 +99,44 @@ plugin's early-injection method under the hood - that's the strongest proof of t
 "survives your app crashing" pitch - and, like `examples/published/*`, installs the real npm
 package rather than local workspace source.
 
-**Deploy trigger and version pinning:** the `deploy-demo` job in `release.yml` runs after a
-successful publish, gated to stable tags only (`!contains(ref, 'alpha'|'beta'|'rc')`) so a
-first-time visitor never lands on untested pre-release behavior. It pins the demo's dependency to
-the exact version that same run just published (`pnpm add @codehacks/virtual-console@<version>`)
-rather than trusting `@latest` to have resolved through npm's registry yet - same
+**Two independently-versioned projects: the package and the demo site.** Deploying the demo used
+to be a side effect of publishing the package (`deploy-demo` ran `needs: publish` in `release.yml`,
+gated to stable tags). That meant a one-line copy fix on the site had no way to ship without also
+cutting a new package version - which is a false signal to npm consumers ("a new release landed")
+for a change that never touched the package at all.
+
+Fixed by giving the demo its own release line via [vump](https://github.com/okcodes/vump)'s
+multi-project support - `vump.toml` now declares two `[[project]]` entries, `main` (tracking the
+root `package.json`, tagged `v{version}`, unchanged) and `web` (tracking `demo/package.json`,
+tagged `web-v{version}`). Each tag shape triggers its own workflow: `release.yml` still
+publishes `main` to npm on a `v*` tag; the new `release-web.yml` deploys the demo to Pages on a
+`web-v*` tag and nothing else. `okcodes/vump/.github/actions/check` reads the pushed tag and
+infers which project it belongs to from its shape, so neither workflow has to say `--project`
+explicitly. Shipping a site-only change is now `vump patch --project web --tag --push` - no
+package version, no npm publish, no changelog entry.
+
+One consequence: a stable package release no longer auto-redeploys the demo, so the version badge
+in its header can lag one release behind until the demo is deployed again. That's a deliberate
+trade for dropping the second trigger path entirely, rather than keeping both wired into one
+shared deploy job.
+
+**No more pinning-with-retry.** The old job pinned the demo's dependency to the exact version its
+own run had *just* published (`pnpm add @codehacks/virtual-console@<version>`), retried because
+the registry hadn't necessarily propagated it yet. That race only existed because publish and
+deploy happened in the same run. Now they never do: `release-web.yml` just runs
+`pnpm install --frozen-lockfile` - the committed `demo/pnpm-lock.yaml` is the declared input, not
+something the deploy job discovers or pins live. Same
 ["Build inputs are declared, never discovered"](CLAUDE.md#build-inputs-are-declared-never-discovered)
-principle, just applied to a version number instead of a git hash.
+principle as before, just resolved by removing the race instead of retrying around it.
 
 **`pnpm-lock.yaml` is committed here, unlike `examples/published/*`.** That precedent's whole
 justification for an uncommitted lockfile is "float on `@latest`" for the one dependency that
-matters. `demo/` already gets that from the explicit `pnpm add ...@<version>` pin above - so an
-uncommitted lockfile wasn't protecting `@codehacks/virtual-console`'s freshness at all, it was just
-letting every *other* dependency (React, Vite, Tailwind, ...) drift unreproducibly on every
-install, local or CI. Committed the lockfile instead and switched the deploy job to
-`pnpm install --frozen-lockfile` - reproducible everywhere except the one dependency that's
-supposed to move, which still does, deliberately, via the explicit pin.
+matters. `demo/` doesn't want that anymore - deploying is now decoupled from publishing (above),
+so nothing re-pins `@codehacks/virtual-console` at deploy time. An uncommitted lockfile would just
+let every dependency (that one included) drift unreproducibly on every install, local or CI.
+Picking up a newer `@codehacks/virtual-console` is a deliberate, out-of-band step -
+`cd demo && pnpm update @codehacks/virtual-console`, committed like any other dependency bump,
+then a `web` release to actually deploy it - not something either workflow does on its own.
 
 **Requires the repo to be public.** GitHub Pages is unavailable for private repos below a paid
 org plan, and an anonymous visitor can't open a private repo in StackBlitz either - there's no way

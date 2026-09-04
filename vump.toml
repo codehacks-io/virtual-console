@@ -1,11 +1,22 @@
-files = ["package.json"]
+# Two independently-versioned projects, disambiguated by tag shape so a single
+# `vump check ${{ github.ref_name }}` in CI infers which one a pushed tag
+# describes without being told --project. See DECISIONS.md, "Two
+# independently-versioned projects: the package and the demo site".
 
 [git]
 commit = false
-commit_message = 'bump to v{new_version}'
+commit_message = 'bump {project} to v{new_version}'
 tag = true
-tag_pattern = 'v{new_version}'
 push = false
 tag_message = "Release {new_version}"
 tag_style = "annotated"   # or "lightweight", or "signed"
 
+[[project]]
+name = "main"
+files = ["package.json"]
+tag_pattern = 'v{new_version}'
+
+[[project]]
+name = "web"
+files = ["demo/package.json"]
+tag_pattern = 'web-v{new_version}'
