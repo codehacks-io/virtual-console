@@ -11,6 +11,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 ### Added
 
 - Repository metadata, contribution guidelines, security policy, and code of conduct.
+- `getVersion()` and `getBuildId()`, exposing the package version and release-commit build id that
+  the console's own header already showed internally.
 
 ## [0.7.6] - 2026-08-26
 
