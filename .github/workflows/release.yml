@@ -101,8 +101,6 @@ jobs:
       - name: Build demo
         working-directory: demo
         run: pnpm run build
-        env:
-          VITE_DEMO_BUILD_SHA: ${{ github.sha }}
 
       - uses: actions/configure-pages@v6
 
