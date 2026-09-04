@@ -1,9 +1,11 @@
+files = ["package.json"]
+
 [git]
 commit = false
 commit_message = 'bump to v{new_version}'
-tag = false
+tag = true
 tag_pattern = 'v{new_version}'
 push = false
+tag_message = "Release {new_version}"
+tag_style = "annotated"   # or "lightweight", or "signed"
 
-[[files]]
-path = 'package.json'
