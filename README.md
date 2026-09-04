@@ -174,7 +174,7 @@ pnpm build:demo
 
 See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
 
-See [demo/README.md](demo/README.md) for the public demo site (`demo/`) - it's not one of the examples above; it's the landing page at [virtual-console.codehacks.io](https://virtual-console.codehacks.io/), redeployed automatically on every stable release.
+See [demo/README.md](demo/README.md) for the public demo site (`demo/`) - it's not one of the examples above; it's the landing page at [virtual-console.codehacks.io](https://virtual-console.codehacks.io/), deployed on its own release line independent of the package's.
 
 See [DECISIONS.md](DECISIONS.md) for the rationale behind non-obvious choices (REPL evaluation safety, DevTools-parity scope, known/accepted limitations) before proposing a change in those areas.
 

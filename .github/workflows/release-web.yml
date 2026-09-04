@@ -1,0 +1,65 @@
+name: Release Web
+
+# The demo site's own release line - independent from the package's (see
+# release.yml). A "web-v*" tag ships a demo/site-only change (copy, layout,
+# a new section) without publishing a new package version or implying one to
+# npm consumers. See DECISIONS.md, "Two independently-versioned projects:
+# the package and the demo site".
+on:
+  push:
+    tags:
+      - 'web-v[0-9]*' # Matches web-v1, web-v1.0, web-v1.0.0, etc.
+
+jobs:
+  deploy-demo:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify Version Match
+        uses: okcodes/vump/.github/actions/check@main
+        with:
+          version: ${{ github.ref_name }}
+
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+
+      # demo/'s pnpm-lock.yaml is committed, so this - including which
+      # @codehacks/virtual-console version it resolves to - is exactly what
+      # was last deliberately pinned there (e.g. via `pnpm update
+      # @codehacks/virtual-console` after a package release), not whatever
+      # "latest" happens to resolve to at deploy time.
+      - name: Install demo dependencies
+        working-directory: demo
+        run: pnpm install --frozen-lockfile
+
+      - name: Build demo
+        working-directory: demo
+        run: pnpm run build
+        env:
+          VITE_DEMO_BUILD_SHA: ${{ github.sha }}
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: demo/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
