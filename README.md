@@ -170,9 +170,58 @@ pnpm dev:demo
 
 # Build the public demo site
 pnpm build:demo
+
+# Pull the latest published @codehacks/virtual-console into the demo
+pnpm update:demo-dep
 ```
 
 See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
+
+### Releasing
+
+Versions are managed by [vump](https://github.com/okcodes/vump) (`vump.toml`), which declares two
+independently-versioned projects - `main` (this package, tagged `v{version}`) and `web` (the demo
+site, tagged `web-v{version}`). Pushing either tag shape triggers its own workflow; see
+[DECISIONS.md](DECISIONS.md) for why they're split and what each one does.
+
+**Release the package** - publishes to npm, under the `alpha`/`beta`/`rc` dist-tag for a
+pre-release or `latest` for a stable one:
+
+```bash
+vump patch --project main --tag --push   # or minor / major
+```
+
+**Release the demo site** - for a site-only change (copy, layout, a new section); never touches
+npm or the package's version:
+
+```bash
+vump patch --project web --tag --push   # or minor / major
+```
+
+**Pick up a new package version in the demo.** The demo installs `@codehacks/virtual-console` from
+its own committed lockfile, not `@latest` at deploy time - so after releasing the package, showing
+that release on the live demo is a deliberate follow-up, not automatic:
+
+```bash
+pnpm update:demo-dep
+git add demo/package.json demo/pnpm-lock.yaml
+git commit -m "chore(demo): update @codehacks/virtual-console"
+vump patch --project web --tag --push
+```
+
+**Common vump commands**, run from the repo root:
+
+```bash
+vump status                                                 # every project's version, and whether its files agree
+vump check <tag>                                            # verify a pushed tag against its project (what CI runs; infers the project from the tag's shape)
+vump patch|minor|major --project <main|web>                 # bump a stable version
+vump alpha|beta|rc --project <main|web> --from <bump>        # start/advance a pre-release, e.g. --from patch
+vump release --project <main|web>                            # drop a pre-release suffix
+```
+
+Add `--dry-run` to preview a bump without writing anything. `--tag` implies `--commit`, and `--push`
+implies `--commit` too - each flag is independent otherwise, so pushing a tag needs both
+`--tag --push` together, as in the examples above.
 
 See [demo/README.md](demo/README.md) for the public demo site (`demo/`) - it's not one of the examples above; it's the landing page at [virtual-console.codehacks.io](https://virtual-console.codehacks.io/), deployed on its own release line independent of the package's.
 
