@@ -113,7 +113,7 @@ dist
 # standalone (non-workspace) project, so their lockfile is meant to float
 # with whatever is currently published, not be pinned in git.
 #
-# demo/pnpm-lock.yaml is NOT listed here (unlike these) - see
+# website/pnpm-lock.yaml is NOT listed here (unlike these) - see
 # DECISIONS.md for why the same-looking setup gets the opposite call.
 examples/published/*/pnpm-lock.yaml
 

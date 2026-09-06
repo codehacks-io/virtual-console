@@ -47,5 +47,5 @@ jobs:
     - name: Build Local Examples
       run: pnpm build:local
 
-    - name: Build Demo
-      run: pnpm build:demo
+    - name: Build Website
+      run: pnpm build:website

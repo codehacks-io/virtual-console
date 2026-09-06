@@ -34,7 +34,7 @@ that produced it. That belongs in a commit message or DECISIONS.md.
 
 ## Relative links between repo files are verified, not eyeballed
 
-This repo cross-links docs from several different directory depths (root, `demo/`, `examples/`,
+This repo cross-links docs from several different directory depths (root, `website/`, `examples/`,
 `.github/`, `.github/ISSUE_TEMPLATE/`), and GitHub only renders issue/PR templates inside the "new
 issue"/"new PR" flow — never on a normal repo browse — so a broken link there is easy to ship
 unnoticed.

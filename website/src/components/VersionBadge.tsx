@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import demoPkg from '../../package.json';
+import websitePkg from '../../package.json';
 
-// Set by release-web.yml's "Build demo" step to the commit this deploy was
+// Set by release-web.yml's "Build website" step to the commit this deploy was
 // built from; unset for local dev, where there's no meaningful build to
 // point at.
-const buildSha = import.meta.env.VITE_DEMO_BUILD_SHA;
+const buildSha = import.meta.env.VITE_WEBSITE_BUILD_SHA;
 
 // Fixed, not in the document flow: bug-report screenshots must always show
 // this without the reporter having to scroll to the bottom first.
 export default function VersionBadge() {
-    const siteVersion = demoPkg.version;
+    const siteVersion = websitePkg.version;
     const label = buildSha ? `v${siteVersion}-${buildSha.slice(0, 7)}` : `v${siteVersion}-local`;
     const [copied, setCopied] = useState(false);
 
