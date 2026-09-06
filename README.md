@@ -171,6 +171,10 @@ pnpm dev:website
 # Build the public website
 pnpm build:website
 
+# Build the public website and serve the real static output (what CI deploys,
+# prerendered HTML included) - no hot reload, refresh manually after a change
+pnpm preview:website
+
 # Pull a @codehacks/virtual-console release into the website (see Releasing below)
 pnpm bump:website:latest
 ```

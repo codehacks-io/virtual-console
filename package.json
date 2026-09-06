@@ -51,6 +51,8 @@
         "build:published": "pnpm run build:import:published && pnpm run build:vite-plugin:published",
         "build:website": "pnpm run install:website && pnpm --dir website build",
 
+        "preview:website": "pnpm run build:website && pnpm --dir website preview",
+
         "install:import:published": "pnpm --dir examples/published/react-vite-import install",
         "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
         "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",

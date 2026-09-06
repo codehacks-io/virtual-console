@@ -10,12 +10,24 @@ Standalone project (own `pnpm-workspace.yaml`), same reasoning as `examples/publ
 # from the repo root
 pnpm dev:website
 pnpm build:website
+pnpm preview:website   # build + serve the real static output (dist/), prerendered HTML included
 
 # or directly
 cd website
 pnpm install
 pnpm dev
+pnpm build && pnpm preview
 ```
+
+`pnpm dev` (Vite's dev server) never runs the prerender step - `index.html`'s `#root` starts empty
+there and `main.tsx` client-renders into it (see [DECISIONS.md](../DECISIONS.md)). To see and debug
+the actual prerendered HTML a no-JS client or crawler would get - or to check something that only
+happens in the production build - use `preview:website` (or `pnpm build && pnpm preview` from
+`website/`) instead. It's a plain build-then-serve, not a dev server: no hot reload or watch mode,
+so re-run it after each change. That's a deliberate simplicity trade, not a limitation to fix -
+wiring up a watcher for a full rebuild (`tsc` + two `vite build` passes + the prerender script) on
+every change would add real complexity for a workflow that's normally reached for occasionally, not
+kept running all day like `pnpm dev`.
 
 ## Deployment
 
