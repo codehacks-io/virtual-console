@@ -107,12 +107,12 @@ for a change that never touched the package at all.
 
 Fixed by giving the website its own release line via [vump](https://github.com/okcodes/vump)'s
 multi-project support - `vump.toml` now declares two `[[project]]` entries, `main` (tracking the
-root `package.json`, tagged `v{version}`, unchanged) and `web` (tracking `website/package.json`,
-tagged `web-v{version}`). Each tag shape triggers its own workflow: `release.yml` still
-publishes `main` to npm on a `v*` tag; the new `release-web.yml` deploys the website to Pages on a
-`web-v*` tag and nothing else. `okcodes/vump/.github/actions/check` reads the pushed tag and
+root `package.json`, tagged `v{version}`, unchanged) and `website` (tracking `website/package.json`,
+tagged `website-v{version}`). Each tag shape triggers its own workflow: `release.yml` still
+publishes `main` to npm on a `v*` tag; the new `release-website.yml` deploys the website to Pages on a
+`website-v*` tag and nothing else. `okcodes/vump/.github/actions/check` reads the pushed tag and
 infers which project it belongs to from its shape, so neither workflow has to say `--project`
-explicitly. Shipping a site-only change is now `vump patch --project web --tag --push` - no
+explicitly. Shipping a site-only change is now `vump patch --project website --tag --push` - no
 package version, no npm publish, no changelog entry.
 
 One consequence: a stable package release no longer auto-redeploys the website, so the version badge
@@ -120,11 +120,11 @@ in its header can lag one release behind until the website is deployed again. Th
 trade for dropping the second trigger path entirely, rather than keeping both wired into one
 shared deploy job.
 
-**The website shows its own version, fixed at a corner, not just a commit hash.** Now that `web` is a
+**The website shows its own version, fixed at a corner, not just a commit hash.** Now that `website` is a
 real, independently-tagged project, a small `VersionBadge` renders
 `v{website/package.json version}-{short commit sha}` - e.g. `v0.1.3-alpha.0-29d9871` - by importing
 `website/package.json` directly rather than adding a new build-time env var for it: the file is
-already the declared source of truth vump keeps in sync with the `web-v*` tag, so reading it
+already the declared source of truth vump keeps in sync with the `website-v*` tag, so reading it
 directly can't drift from that the way a separately-computed value could. It moved out of the
 sticky nav (where it was sha-only before, and needed inline layout care to avoid crowding the
 npm/GitHub icons). It's `fixed`, not placed in the footer's normal document flow, on purpose - bug
@@ -134,7 +134,7 @@ scrolling to the bottom first.
 **No more pinning-with-retry.** The old job pinned the website's dependency to the exact version its
 own run had *just* published (`pnpm add @codehacks/virtual-console@<version>`), retried because
 the registry hadn't necessarily propagated it yet. That race only existed because publish and
-deploy happened in the same run. Now they never do: `release-web.yml` just runs
+deploy happened in the same run. Now they never do: `release-website.yml` just runs
 `pnpm install --frozen-lockfile` - the committed `website/pnpm-lock.yaml` is the declared input, not
 something the deploy job discovers or pins live. Same
 ["Build inputs are declared, never discovered"](CLAUDE.md#build-inputs-are-declared-never-discovered)
@@ -150,7 +150,7 @@ alias, for the same reason - the file should say what's actually running, not de
 tag happens to resolve to at install time. Picking up a newer `@codehacks/virtual-console` is a
 deliberate, out-of-band step - `pnpm bump:website:latest`, or `:alpha` / `:beta` / `:rc` to preview a
 pre-release (a bare `pnpm update` can never reach those - a `latest`-alias/semver-range dependency
-only ever resolves to a stable version), committed like any other dependency bump, then a `web`
+only ever resolves to a stable version), committed like any other dependency bump, then a `website`
 release to actually deploy it - not something either workflow does on its own.
 
 **Requires the repo to be public.** GitHub Pages is unavailable for private repos below a paid

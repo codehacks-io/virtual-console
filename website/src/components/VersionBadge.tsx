@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import websitePkg from '../../package.json';
 
-// Set by release-web.yml's "Build website" step to the commit this deploy was
+// Set by release-website.yml's "Build website" step to the commit this deploy was
 // built from; unset for local dev, where there's no meaningful build to
 // point at.
 const buildSha = import.meta.env.VITE_WEBSITE_BUILD_SHA;

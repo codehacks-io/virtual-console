@@ -19,8 +19,8 @@ pnpm dev
 
 ## Deployment
 
-Deployed to GitHub Pages by `.github/workflows/release-web.yml`, independently of the package's own release line - a `web-v{version}` tag deploys the website; a plain `v{version}` tag (the package release) does not. This is its own [vump](https://github.com/okcodes/vump) project (`web` in the root `vump.toml`, tracking this directory's `package.json`), so a site-only change ships with `vump patch --project web --tag --push` and never touches the package's version or npm. See [DECISIONS.md](../DECISIONS.md) for the full reasoning.
+Deployed to GitHub Pages by `.github/workflows/release-website.yml`, independently of the package's own release line - a `website-v{version}` tag deploys the website; a plain `v{version}` tag (the package release) does not. This is its own [vump](https://github.com/okcodes/vump) project (`website` in the root `vump.toml`, tracking this directory's `package.json`), so a site-only change ships with `vump patch --project website --tag --push` and never touches the package's version or npm. See [DECISIONS.md](../DECISIONS.md) for the full reasoning.
 
-Picking up a newer `@codehacks/virtual-console` release is a separate, deliberate step: `pnpm bump:website:latest` (or `:alpha` / `:beta` / `:rc`) here, committed like any other dependency bump, then a `web` release to actually deploy it.
+Picking up a newer `@codehacks/virtual-console` release is a separate, deliberate step: `pnpm bump:website:latest` (or `:alpha` / `:beta` / `:rc`) here, committed like any other dependency bump, then a `website` release to actually deploy it.
 
 Served from the `virtual-console.codehacks.io` custom domain (configured in the repo's Pages settings, not in code - no `CNAME` file needed for a workflow-based deploy). That means the site is always at root - no Vite `base` path config needed or wanted here, unlike a bare `github.io/<repo>/` project page.

@@ -17,6 +17,6 @@ files = ["package.json"]
 tag_pattern = 'v{new_version}'
 
 [[project]]
-name = "web"
+name = "website"
 files = ["website/package.json"]
-tag_pattern = 'web-v{new_version}'
+tag_pattern = 'website-v{new_version}'
