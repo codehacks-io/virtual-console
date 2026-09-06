@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@codehacks/virtual-console':
-        specifier: 0.7.9-alpha.0
-        version: 0.7.9-alpha.0(vite@8.2.2(@types/node@26.4.1)(jiti@2.7.0))
+        specifier: 0.7.9-alpha.1
+        version: 0.7.9-alpha.1(vite@8.2.2(@types/node@26.4.1)(jiti@2.7.0))
       lucide-react:
         specifier: ^1.39.0
         version: 1.39.0(react@19.2.8)
@@ -48,8 +48,8 @@ importers:
 
 packages:
 
-  '@codehacks/virtual-console@0.7.9-alpha.0':
-    resolution: {integrity: sha512-17KbQoaWbYc+ZtJ2UyWI6QU1kmtoddhEfXeuiqzR7nQRKKP2sLQJIKrI8kKdqjaQ6LWpWjI+qVGs6Zr34kFJQg==}
+  '@codehacks/virtual-console@0.7.9-alpha.1':
+    resolution: {integrity: sha512-hGMaQt0k+57bued+S9ylN8TNF/UW59q0ed2atWFzkEC57K4s7cw2tQ4h7PUj82Kjnbk58C0D7dRpyvzKtTAS5A==}
     engines: {node: '>=26'}
     peerDependencies:
       vite: '>=5.0.0 <9.0.0'
@@ -705,7 +705,7 @@ packages:
 
 snapshots:
 
-  '@codehacks/virtual-console@0.7.9-alpha.0(vite@8.2.2(@types/node@26.4.1)(jiti@2.7.0))':
+  '@codehacks/virtual-console@0.7.9-alpha.1(vite@8.2.2(@types/node@26.4.1)(jiti@2.7.0))':
     optionalDependencies:
       vite: 8.2.2(@types/node@26.4.1)(jiti@2.7.0)
 

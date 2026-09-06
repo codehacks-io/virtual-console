@@ -8,7 +8,8 @@ const TOKEN_CLASS = {
     BOOLEAN: 'vc-boolean',
     COMMENT: 'vc-comment',
     OPERATOR: 'vc-operator',
-    FUNCTION: 'vc-function'
+    FUNCTION: 'vc-function',
+    BRACKET_MATCH: 'vc-bracket-match'
 };
 
 function escapeHtml(unsafe: string): string {
@@ -24,14 +25,32 @@ function escapeHtml(unsafe: string): string {
  * Renders a token stream as HTML with a <span> per highlighted token, for
  * use as a display layer behind a transparent <input> (so it can't be run
  * through a full parser/AST).
+ *
+ * `matchBrackets`, when given, is a pair of character offsets (from
+ * findMatchingBrackets) identifying the two bracket punctuation tokens to
+ * render with the matched-pair style instead of their normal plain
+ * passthrough.
  */
-export function highlightCode(code: string): string {
+export function highlightCode(code: string, matchBrackets?: [number, number] | null): string {
     if (!code) return '';
 
     const tokens = tokenize(code);
     let html = '';
+    let offset = 0;
 
     tokens.forEach((token: Token, index: number) => {
+        const tokenStart = offset;
+        offset += token.value.length;
+
+        if (
+            token.type === 'punctuation' &&
+            matchBrackets &&
+            (tokenStart === matchBrackets[0] || tokenStart === matchBrackets[1])
+        ) {
+            html += `<span class="${TOKEN_CLASS.BRACKET_MATCH}">${escapeHtml(token.value)}</span>`;
+            return;
+        }
+
         switch (token.type) {
             case 'string':
                 html += `<span class="${TOKEN_CLASS.STRING}">${escapeHtml(token.value)}</span>`;

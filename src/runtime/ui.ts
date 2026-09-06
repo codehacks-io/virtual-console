@@ -5,6 +5,7 @@ import type { IconName } from './icons';
 import { createObjectViewer } from './object-viewer';
 import { repl } from './repl';
 import { highlightCode } from './syntax-highlighter';
+import { findMatchingBrackets } from './bracket-matcher';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from './storage';
 import { cycleTheme, getThemeConfig, initThemeIndex } from './theme';
 import type { LogType } from './types';
@@ -668,9 +669,16 @@ function setupREPL(
         }
     });
 
-    // Debounced so retyping fast on mobile doesn't re-tokenize on every keystroke
-    const updateHighlight = debounce((code: string) => {
-        highlightBackdrop.innerHTML = highlightCode(code);
+    // Debounced so retyping fast on mobile doesn't re-tokenize on every
+    // keystroke. Reads selection state live (not via captured args) so a
+    // trailing call always reflects where the caret ended up, even after a
+    // programmatic value change followed by an async caret move (see the
+    // ArrowUp/ArrowDown history handling below).
+    const updateHighlight = debounce(() => {
+        const cursorPos = input.selectionStart ?? 0;
+        const hasSelection = cursorPos !== (input.selectionEnd ?? cursorPos);
+        const matchBrackets = hasSelection ? null : findMatchingBrackets(input.value, cursorPos);
+        highlightBackdrop.innerHTML = highlightCode(input.value, matchBrackets);
     }, 50);
 
     // Grows the textarea to fit its content (up to the CSS max-height, past
@@ -760,7 +768,7 @@ function setupREPL(
         const val = input.value;
 
         autosize();
-        updateHighlight(val);
+        updateHighlight();
 
         // Pre-evaluation preview
         const result = repl.preEvaluate(val);
@@ -811,4 +819,12 @@ function setupREPL(
             suggestionsBox.style.display = 'none';
         }, 200);
     });
+
+    // Bracket matching depends on caret position, not just text content, so
+    // it also needs to refresh on pure caret movement - a click to
+    // reposition, arrow-key navigation, or a mouse/keyboard text selection -
+    // none of which fire 'input'.
+    input.addEventListener('click', updateHighlight);
+    input.addEventListener('keyup', updateHighlight);
+    input.addEventListener('select', updateHighlight);
 }
