@@ -59,7 +59,7 @@
         "bump:demo:alpha": "pnpm --dir demo add @codehacks/virtual-console@alpha",
         "bump:demo:beta": "pnpm --dir demo add @codehacks/virtual-console@beta",
         "bump:demo:rc": "pnpm --dir demo add @codehacks/virtual-console@rc",
-        "bump:demo:latest": "pnpm --dir demo update @codehacks/virtual-console@latest",
+        "bump:demo:latest": "pnpm --dir demo add @codehacks/virtual-console@latest",
 
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",
