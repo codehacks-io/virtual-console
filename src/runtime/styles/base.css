@@ -506,6 +506,17 @@
   color: var(--vc-comment);
 }
 
+/* Matching bracket pair in the REPL input - subtle background plus a small
+   underline, like DevTools/editor bracket-match highlighting. Uses the same
+   theme-agnostic gray overlay as the rest of this file (see the various
+   rgba(128, 128, 128, ...) rules above) instead of a per-theme variable,
+   since every theme's text stays legible over a neutral gray at low alpha. */
+.vc-bracket-match {
+  background: rgba(128, 128, 128, 0.25);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.7);
+  border-radius: 2px;
+}
+
 .vc-property-key {
   margin-right: 6px;
   color: var(--vc-property-key);
