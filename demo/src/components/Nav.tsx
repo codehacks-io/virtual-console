@@ -2,11 +2,6 @@ import { getVersion } from '@codehacks/virtual-console';
 import { Package, Terminal } from 'lucide-react';
 import GithubIcon from './GithubIcon';
 
-// Set by release.yml's "Build demo" step to the commit this deploy was
-// built from; unset for local dev, where there's no meaningful build to
-// point at.
-const buildSha = import.meta.env.VITE_DEMO_BUILD_SHA;
-
 export default function Nav() {
     const version = getVersion();
 
@@ -46,28 +41,6 @@ export default function Nav() {
                         <GithubIcon className="size-4" />
                         <span className="hidden sm:inline" aria-hidden="true">GitHub</span>
                     </a>
-                    {/* Dim on purpose - a debugging aid for us, not something a
-                        visitor needs to notice. Lives in the sticky header (not
-                        the footer) so it survives into a screenshot regardless
-                        of scroll position, same reasoning as the version badge. */}
-                    {buildSha ? (
-                        <a
-                            href={`https://github.com/codehacks-io/virtual-console/commit/${buildSha}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            title={`Demo built from commit ${buildSha}`}
-                            className="hidden font-mono text-[11px] text-neutral-700 transition hover:text-neutral-500 sm:inline"
-                        >
-                            {buildSha.slice(0, 7)}
-                        </a>
-                    ) : (
-                        <span
-                            title="Local, unpublished build"
-                            className="hidden font-mono text-[11px] text-neutral-700 sm:inline"
-                        >
-                            local
-                        </span>
-                    )}
                 </div>
             </div>
         </header>

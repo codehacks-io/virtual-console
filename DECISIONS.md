@@ -120,6 +120,17 @@ in its header can lag one release behind until the demo is deployed again. That'
 trade for dropping the second trigger path entirely, rather than keeping both wired into one
 shared deploy job.
 
+**The demo shows its own version, fixed at a corner, not just a commit hash.** Now that `web` is a
+real, independently-tagged project, a small `VersionBadge` renders
+`v{demo/package.json version}-{short commit sha}` - e.g. `v0.1.3-alpha.0-29d9871` - by importing
+`demo/package.json` directly rather than adding a new build-time env var for it: the file is
+already the declared source of truth vump keeps in sync with the `web-v*` tag, so reading it
+directly can't drift from that the way a separately-computed value could. It moved out of the
+sticky nav (where it was sha-only before, and needed inline layout care to avoid crowding the
+npm/GitHub icons). It's `fixed`, not placed in the footer's normal document flow, on purpose - bug
+reports are screenshots, and this needs to show up in every one of them without the reporter
+scrolling to the bottom first.
+
 **No more pinning-with-retry.** The old job pinned the demo's dependency to the exact version its
 own run had *just* published (`pnpm add @codehacks/virtual-console@<version>`), retried because
 the registry hadn't necessarily propagated it yet. That race only existed because publish and
@@ -134,9 +145,13 @@ justification for an uncommitted lockfile is "float on `@latest`" for the one de
 matters. `demo/` doesn't want that anymore - deploying is now decoupled from publishing (above),
 so nothing re-pins `@codehacks/virtual-console` at deploy time. An uncommitted lockfile would just
 let every dependency (that one included) drift unreproducibly on every install, local or CI.
-Picking up a newer `@codehacks/virtual-console` is a deliberate, out-of-band step -
-`cd demo && pnpm update @codehacks/virtual-console`, committed like any other dependency bump,
-then a `web` release to actually deploy it - not something either workflow does on its own.
+`demo/package.json` itself pins the dependency to an exact resolved version rather than a `latest`
+alias, for the same reason - the file should say what's actually running, not defer to whatever a
+tag happens to resolve to at install time. Picking up a newer `@codehacks/virtual-console` is a
+deliberate, out-of-band step - `pnpm bump:demo:latest`, or `:alpha` / `:beta` / `:rc` to preview a
+pre-release (a bare `pnpm update` can never reach those - a `latest`-alias/semver-range dependency
+only ever resolves to a stable version), committed like any other dependency bump, then a `web`
+release to actually deploy it - not something either workflow does on its own.
 
 **Requires the repo to be public.** GitHub Pages is unavailable for private repos below a paid
 org plan, and an anonymous visitor can't open a private repo in StackBlitz either - there's no way

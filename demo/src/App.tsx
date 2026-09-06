@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import InstallSnippet from './components/InstallSnippet';
 import LiveDemo from './components/LiveDemo';
 import Nav from './components/Nav';
+import VersionBadge from './components/VersionBadge';
 
 export default function App() {
     return (
@@ -16,6 +17,7 @@ export default function App() {
                 <InstallSnippet />
             </main>
             <Footer />
+            <VersionBadge />
         </div>
     );
 }
