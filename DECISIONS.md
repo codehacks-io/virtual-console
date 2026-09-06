@@ -120,14 +120,16 @@ in its header can lag one release behind until the demo is deployed again. That'
 trade for dropping the second trigger path entirely, rather than keeping both wired into one
 shared deploy job.
 
-**The demo footer shows the site's own version, not just a commit hash.** Now that `web` is a real,
-independently-tagged project, the footer renders `v{demo/package.json version}-{short commit sha}`
-- e.g. `v0.1.3-alpha.0-29d9871` - by importing `demo/package.json` directly rather than adding a
-new build-time env var for it: the file is already the declared source of truth vump keeps in sync
-with the `web-v*` tag, so reading it directly can't drift from that the way a separately-computed
-value could. It moved out of the sticky nav (where it was sha-only before) into the footer, in line
-with the rest of this file's reasoning about build inputs - it's a debugging aid for maintainers,
-not something a visitor needs to see above the fold.
+**The demo shows its own version, fixed at a corner, not just a commit hash.** Now that `web` is a
+real, independently-tagged project, a small `VersionBadge` renders
+`v{demo/package.json version}-{short commit sha}` - e.g. `v0.1.3-alpha.0-29d9871` - by importing
+`demo/package.json` directly rather than adding a new build-time env var for it: the file is
+already the declared source of truth vump keeps in sync with the `web-v*` tag, so reading it
+directly can't drift from that the way a separately-computed value could. It moved out of the
+sticky nav (where it was sha-only before, and needed inline layout care to avoid crowding the
+npm/GitHub icons). It's `fixed`, not placed in the footer's normal document flow, on purpose - bug
+reports are screenshots, and this needs to show up in every one of them without the reporter
+scrolling to the bottom first.
 
 **No more pinning-with-retry.** The old job pinned the demo's dependency to the exact version its
 own run had *just* published (`pnpm add @codehacks/virtual-console@<version>`), retried because
