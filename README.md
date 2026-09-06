@@ -171,8 +171,8 @@ pnpm dev:demo
 # Build the public demo site
 pnpm build:demo
 
-# Pull the latest published @codehacks/virtual-console into the demo
-pnpm update:demo-dep
+# Pull a @codehacks/virtual-console release into the demo (see Releasing below)
+pnpm bump:demo:latest
 ```
 
 See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
@@ -198,14 +198,16 @@ npm or the package's version:
 vump patch --project web --tag --push   # or minor / major
 ```
 
-**Pick up a new package version in the demo.** The demo installs `@codehacks/virtual-console` from
-its own committed lockfile, not `@latest` at deploy time - so after releasing the package, showing
-that release on the live demo is a deliberate follow-up, not automatic:
+**Pick up a new package version in the demo.** `demo/package.json` pins `@codehacks/virtual-console`
+to an exact version rather than a `latest` alias, so the file itself always shows exactly what the
+live demo runs - installed from its own committed lockfile, not re-resolved at deploy time. Bump it
+explicitly for whichever channel you want live, then release the demo to deploy it - this is a
+deliberate follow-up, not automatic:
 
 ```bash
-pnpm update:demo-dep
+pnpm bump:demo:latest   # or bump:demo:alpha / :beta / :rc to preview a pre-release
 git add demo/package.json demo/pnpm-lock.yaml
-git commit -m "chore(demo): update @codehacks/virtual-console"
+git commit -m "chore(demo): bump @codehacks/virtual-console"
 vump patch --project web --tag --push
 ```
 

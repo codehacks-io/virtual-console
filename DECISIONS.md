@@ -134,9 +134,13 @@ justification for an uncommitted lockfile is "float on `@latest`" for the one de
 matters. `demo/` doesn't want that anymore - deploying is now decoupled from publishing (above),
 so nothing re-pins `@codehacks/virtual-console` at deploy time. An uncommitted lockfile would just
 let every dependency (that one included) drift unreproducibly on every install, local or CI.
-Picking up a newer `@codehacks/virtual-console` is a deliberate, out-of-band step -
-`cd demo && pnpm update @codehacks/virtual-console`, committed like any other dependency bump,
-then a `web` release to actually deploy it - not something either workflow does on its own.
+`demo/package.json` itself pins the dependency to an exact resolved version rather than a `latest`
+alias, for the same reason - the file should say what's actually running, not defer to whatever a
+tag happens to resolve to at install time. Picking up a newer `@codehacks/virtual-console` is a
+deliberate, out-of-band step - `pnpm bump:demo:latest`, or `:alpha` / `:beta` / `:rc` to preview a
+pre-release (a bare `pnpm update` can never reach those - a `latest`-alias/semver-range dependency
+only ever resolves to a stable version), committed like any other dependency bump, then a `web`
+release to actually deploy it - not something either workflow does on its own.
 
 **Requires the repo to be public.** GitHub Pages is unavailable for private repos below a paid
 org plan, and an anonymous visitor can't open a private repo in StackBlitz either - there's no way

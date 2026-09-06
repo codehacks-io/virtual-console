@@ -55,7 +55,11 @@
         "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
         "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",
         "install:demo": "pnpm --dir demo install --frozen-lockfile",
-        "update:demo-dep": "pnpm --dir demo update @codehacks/virtual-console",
+
+        "bump:demo:alpha": "pnpm --dir demo add @codehacks/virtual-console@alpha",
+        "bump:demo:beta": "pnpm --dir demo add @codehacks/virtual-console@beta",
+        "bump:demo:rc": "pnpm --dir demo add @codehacks/virtual-console@rc",
+        "bump:demo:latest": "pnpm --dir demo update @codehacks/virtual-console@latest",
 
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",

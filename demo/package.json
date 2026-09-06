@@ -11,7 +11,7 @@
         "clean": "rm -rf dist .vite"
     },
     "dependencies": {
-        "@codehacks/virtual-console": "latest",
+        "@codehacks/virtual-console": "0.7.9-alpha.0",
         "lucide-react": "^1.39.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8"
