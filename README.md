@@ -175,6 +175,10 @@ pnpm build:website
 # prerendered HTML included) - no hot reload, refresh manually after a change
 pnpm preview:website
 
+# Same, but rebuilds automatically on every change under website/src or
+# website/index.html - still no hot reload, just refresh the browser yourself
+pnpm preview:website:watch
+
 # Pull a @codehacks/virtual-console release into the website (see Releasing below)
 pnpm bump:website:latest
 ```
