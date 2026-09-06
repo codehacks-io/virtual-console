@@ -180,8 +180,8 @@ See [examples/README.md](examples/README.md) for the full layout (local workspac
 ### Releasing
 
 Versions are managed by [vump](https://github.com/okcodes/vump) (`vump.toml`), which declares two
-independently-versioned projects - `main` (this package, tagged `v{version}`) and `web` (the
-website, tagged `web-v{version}`). Pushing either tag shape triggers its own workflow; see
+independently-versioned projects - `main` (this package, tagged `v{version}`) and `website` (the
+website, tagged `website-v{version}`). Pushing either tag shape triggers its own workflow; see
 [DECISIONS.md](DECISIONS.md) for why they're split and what each one does.
 
 **Release the package** - publishes to npm, under the `alpha`/`beta`/`rc` dist-tag for a
@@ -195,7 +195,7 @@ vump patch --project main --tag --push   # or minor / major
 npm or the package's version:
 
 ```bash
-vump patch --project web --tag --push   # or minor / major
+vump patch --project website --tag --push   # or minor / major
 ```
 
 **Pick up a new package version in the website.** `website/package.json` pins `@codehacks/virtual-console`
@@ -208,7 +208,7 @@ deliberate follow-up, not automatic:
 pnpm bump:website:latest   # or bump:website:alpha / :beta / :rc to preview a pre-release
 git add website/package.json website/pnpm-lock.yaml
 git commit -m "chore(website): bump @codehacks/virtual-console"
-vump patch --project web --tag --push
+vump patch --project website --tag --push
 ```
 
 **Common vump commands**, run from the repo root:
@@ -216,9 +216,9 @@ vump patch --project web --tag --push
 ```bash
 vump status                                                 # every project's version, and whether its files agree
 vump check <tag>                                            # verify a pushed tag against its project (what CI runs; infers the project from the tag's shape)
-vump patch|minor|major --project <main|web>                 # bump a stable version
-vump alpha|beta|rc --project <main|web> --from <bump>        # start/advance a pre-release, e.g. --from patch
-vump release --project <main|web>                            # drop a pre-release suffix
+vump patch|minor|major --project <main|website>             # bump a stable version
+vump alpha|beta|rc --project <main|website> --from <bump>    # start/advance a pre-release, e.g. --from patch
+vump release --project <main|website>                       # drop a pre-release suffix
 ```
 
 Add `--dry-run` to preview a bump without writing anything. `--tag` implies `--commit`, and `--push`

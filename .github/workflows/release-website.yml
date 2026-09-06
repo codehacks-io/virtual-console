@@ -1,14 +1,14 @@
-name: Release Web
+name: Release Website
 
 # The website's own release line - independent from the package's (see
-# release.yml). A "web-v*" tag ships a website-only change (copy, layout,
+# release.yml). A "website-v*" tag ships a website-only change (copy, layout,
 # a new section) without publishing a new package version or implying one to
 # npm consumers. See DECISIONS.md, "Two independently-versioned projects:
 # the package and the website".
 on:
   push:
     tags:
-      - 'web-v[0-9]*' # Matches web-v1, web-v1.0, web-v1.0.0, etc.
+      - 'website-v[0-9]*' # Matches website-v1, website-v1.0, website-v1.0.0, etc.
 
 jobs:
   deploy-website:
