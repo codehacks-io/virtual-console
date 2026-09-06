@@ -1,14 +1,14 @@
 {
     "name": "virtual-console-website",
     "private": true,
-    "version": "0.1.3",
+    "version": "0.1.4-alpha.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc -b && vite build",
+        "build": "tsc -b && vite build && vite build --config vite.ssr.config.ts --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
         "preview": "vite preview",
         "typecheck": "tsc -b --noEmit",
-        "clean": "rm -rf dist .vite"
+        "clean": "rm -rf dist dist-ssr .vite"
     },
     "dependencies": {
         "@codehacks/virtual-console": "0.7.9-alpha.0",

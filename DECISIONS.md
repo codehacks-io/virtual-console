@@ -160,6 +160,28 @@ for this reason (2026-08-26), which also required an org-level `members_can_crea
 to be enabled - a broader-scoped, org-wide change that was called out and confirmed separately
 before touching it, since it wasn't implied by "make this one repo public."
 
+**The website prerenders to static HTML at build time, not just client-side React.** Before this,
+`dist/index.html` shipped an empty `<div id="root">` - fine for a browser, but a no-JS crawler
+(and some AI agents fetching the page) got nothing. Next.js was considered instead of fixing this
+in Vite, since SSR is its headline feature - but `release-website.yml` deploys to GitHub Pages,
+which only serves static files with no Node process behind it. Next's SSR/ISR/server-actions
+advantages need a server to run on, so on Pages it would run in `output: 'export'` (fully static)
+mode anyway - the same static-HTML output Vite already produces, just with the App Router's
+routing/data-fetching machinery for a site that has exactly one page and no `react-router`. That
+would have been a full framework migration for a capability Vite can add directly.
+
+The fix: `vite.ssr.config.ts` builds `src/entry-server.tsx` (a `renderToString(<App/>)` wrapper) to
+`dist-ssr/`, and `scripts/prerender.mjs` inlines that HTML into `dist/index.html`'s `#root`, then
+deletes `dist-ssr/` - it's a build-time intermediate, not a deploy artifact. `src/main.tsx` now
+hydrates when `#root` already has children (a real build/preview load) and falls back to a normal
+`createRoot().render()` when it's empty (`vite dev`, which serves `index.html` unprerendered).
+`vite.ssr.config.ts` only carries the `react()` plugin, not `virtualConsoleVitePlugin` or
+`tailwindcss()` - the console plugin unconditionally emits its own client chunk on `command ===
+'build'`, which breaks when pointed at a non-HTML SSR entry, and neither plugin's output (injected
+`<script>`/`<style>` tags, compiled CSS) is used by a build whose only output is an HTML string.
+`release-website.yml` needed no changes - `pnpm run build` still ends with static files in
+`website/dist`, just with real markup already in them.
+
 ## Where to find the rest
 
 - [README.md](README.md) - installation, configuration, and the `replEnabled: false` escape hatch
