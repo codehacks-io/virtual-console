@@ -41,7 +41,7 @@
         "dev:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import dev",
         "dev:vite-plugin:local": "pnpm build && pnpm --parallel --filter @codehacks/virtual-console --filter @codehacks/react-vite-local-plugin dev",
         "dev:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin dev",
-        "dev:demo": "pnpm run install:demo && pnpm --dir demo dev",
+        "dev:website": "pnpm run install:website && pnpm --dir website dev",
 
         "build:import:local": "pnpm build && pnpm --filter @codehacks/react-vite-local-import build",
         "build:import:published": "pnpm run install:import:published && pnpm --dir examples/published/react-vite-import build",
@@ -49,17 +49,17 @@
         "build:vite-plugin:published": "pnpm run install:vite-plugin:published && pnpm --dir examples/published/react-vite-plugin build",
         "build:local": "pnpm run build:import:local && pnpm run build:vite-plugin:local",
         "build:published": "pnpm run build:import:published && pnpm run build:vite-plugin:published",
-        "build:demo": "pnpm run install:demo && pnpm --dir demo build",
+        "build:website": "pnpm run install:website && pnpm --dir website build",
 
         "install:import:published": "pnpm --dir examples/published/react-vite-import install",
         "install:vite-plugin:published": "pnpm --dir examples/published/react-vite-plugin install",
         "install:published": "pnpm run install:import:published && pnpm run install:vite-plugin:published",
-        "install:demo": "pnpm --dir demo install --frozen-lockfile",
+        "install:website": "pnpm --dir website install --frozen-lockfile",
 
-        "bump:demo:alpha": "pnpm --dir demo add @codehacks/virtual-console@alpha",
-        "bump:demo:beta": "pnpm --dir demo add @codehacks/virtual-console@beta",
-        "bump:demo:rc": "pnpm --dir demo add @codehacks/virtual-console@rc",
-        "bump:demo:latest": "pnpm --dir demo add @codehacks/virtual-console@latest",
+        "bump:website:alpha": "pnpm --dir website add @codehacks/virtual-console@alpha",
+        "bump:website:beta": "pnpm --dir website add @codehacks/virtual-console@beta",
+        "bump:website:rc": "pnpm --dir website add @codehacks/virtual-console@rc",
+        "bump:website:latest": "pnpm --dir website add @codehacks/virtual-console@latest",
 
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",

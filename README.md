@@ -8,7 +8,7 @@ Use it through an explicit runtime import, or through the Vite plugin when you w
 
 A `WKWebView` inside a native app can't be opened in Safari Web Inspector unless the app that hosts it sets [`isInspectable`](https://developer.apple.com/documentation/webkit/wkwebview/isinspectable), which defaults to `false` — so if you don't own the native shell, there is no console to open. Even when you do own it, an inspector you attach after the fact can't show you what already happened during boot. This console is rendered by the page itself, so it's attached from the first line of script, to everyone looking at the screen.
 
-**[Try the live demo →](https://virtual-console.codehacks.io/)** — no install required. Or [open the demo source in StackBlitz](https://stackblitz.com/github/codehacks-io/virtual-console/tree/main/demo) to run and edit it in-browser.
+**[Try the live demo →](https://virtual-console.codehacks.io/)** — no install required. Or [open the website source in StackBlitz](https://stackblitz.com/github/codehacks-io/virtual-console/tree/main/website) to run and edit it in-browser.
 
 ## Features
 
@@ -165,14 +165,14 @@ pnpm dev:vite-plugin:local
 # Build local workspace examples
 pnpm build:local
 
-# Run the public demo site
-pnpm dev:demo
+# Run the public website
+pnpm dev:website
 
-# Build the public demo site
-pnpm build:demo
+# Build the public website
+pnpm build:website
 
-# Pull a @codehacks/virtual-console release into the demo (see Releasing below)
-pnpm bump:demo:latest
+# Pull a @codehacks/virtual-console release into the website (see Releasing below)
+pnpm bump:website:latest
 ```
 
 See [examples/README.md](examples/README.md) for the full layout (local workspace examples vs. standalone examples that install the real published package) and the `*:published` commands.
@@ -180,8 +180,8 @@ See [examples/README.md](examples/README.md) for the full layout (local workspac
 ### Releasing
 
 Versions are managed by [vump](https://github.com/okcodes/vump) (`vump.toml`), which declares two
-independently-versioned projects - `main` (this package, tagged `v{version}`) and `web` (the demo
-site, tagged `web-v{version}`). Pushing either tag shape triggers its own workflow; see
+independently-versioned projects - `main` (this package, tagged `v{version}`) and `web` (the
+website, tagged `web-v{version}`). Pushing either tag shape triggers its own workflow; see
 [DECISIONS.md](DECISIONS.md) for why they're split and what each one does.
 
 **Release the package** - publishes to npm, under the `alpha`/`beta`/`rc` dist-tag for a
@@ -191,23 +191,23 @@ pre-release or `latest` for a stable one:
 vump patch --project main --tag --push   # or minor / major
 ```
 
-**Release the demo site** - for a site-only change (copy, layout, a new section); never touches
+**Release the website** - for a site-only change (copy, layout, a new section); never touches
 npm or the package's version:
 
 ```bash
 vump patch --project web --tag --push   # or minor / major
 ```
 
-**Pick up a new package version in the demo.** `demo/package.json` pins `@codehacks/virtual-console`
+**Pick up a new package version in the website.** `website/package.json` pins `@codehacks/virtual-console`
 to an exact version rather than a `latest` alias, so the file itself always shows exactly what the
-live demo runs - installed from its own committed lockfile, not re-resolved at deploy time. Bump it
-explicitly for whichever channel you want live, then release the demo to deploy it - this is a
+live website runs - installed from its own committed lockfile, not re-resolved at deploy time. Bump it
+explicitly for whichever channel you want live, then release the website to deploy it - this is a
 deliberate follow-up, not automatic:
 
 ```bash
-pnpm bump:demo:latest   # or bump:demo:alpha / :beta / :rc to preview a pre-release
-git add demo/package.json demo/pnpm-lock.yaml
-git commit -m "chore(demo): bump @codehacks/virtual-console"
+pnpm bump:website:latest   # or bump:website:alpha / :beta / :rc to preview a pre-release
+git add website/package.json website/pnpm-lock.yaml
+git commit -m "chore(website): bump @codehacks/virtual-console"
 vump patch --project web --tag --push
 ```
 
@@ -225,7 +225,7 @@ Add `--dry-run` to preview a bump without writing anything. `--tag` implies `--c
 implies `--commit` too - each flag is independent otherwise, so pushing a tag needs both
 `--tag --push` together, as in the examples above.
 
-See [demo/README.md](demo/README.md) for the public demo site (`demo/`) - it's not one of the examples above; it's the landing page at [virtual-console.codehacks.io](https://virtual-console.codehacks.io/), deployed on its own release line independent of the package's.
+See [website/README.md](website/README.md) for the public website (`website/`) - it's not one of the examples above; it's the landing page at [virtual-console.codehacks.io](https://virtual-console.codehacks.io/), deployed on its own release line independent of the package's.
 
 See [DECISIONS.md](DECISIONS.md) for the rationale behind non-obvious choices (REPL evaluation safety, DevTools-parity scope, known/accepted limitations) before proposing a change in those areas.
 

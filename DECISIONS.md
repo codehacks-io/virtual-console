@@ -89,9 +89,9 @@ so nobody spends time trying to close them:
   `ArrowUp`/`ArrowDown` only step through history when the caret is on the first/last line, so they
   move the cursor normally everywhere else in a multi-line command.
 
-## The public demo (`demo/`) is not one of the integration examples
+## The public website (`website/`) is not one of the integration examples
 
-`demo/` is a separate app from `examples/*` on purpose. The `examples/*` apps exist to prove each
+`website/` is a separate app from `examples/*` on purpose. The `examples/*` apps exist to prove each
 integration path works and stay minimal by design; a public-facing "why should I care" landing
 page has different goals (visual polish, a hero pitch, a live interactive demo area) and would
 have compromised the examples' minimalism if bolted onto one of them. It still uses the Vite
@@ -99,31 +99,31 @@ plugin's early-injection method under the hood - that's the strongest proof of t
 "survives your app crashing" pitch - and, like `examples/published/*`, installs the real npm
 package rather than local workspace source.
 
-**Two independently-versioned projects: the package and the demo site.** Deploying the demo used
+**Two independently-versioned projects: the package and the website.** Deploying the website used
 to be a side effect of publishing the package (`deploy-demo` ran `needs: publish` in `release.yml`,
 gated to stable tags). That meant a one-line copy fix on the site had no way to ship without also
 cutting a new package version - which is a false signal to npm consumers ("a new release landed")
 for a change that never touched the package at all.
 
-Fixed by giving the demo its own release line via [vump](https://github.com/okcodes/vump)'s
+Fixed by giving the website its own release line via [vump](https://github.com/okcodes/vump)'s
 multi-project support - `vump.toml` now declares two `[[project]]` entries, `main` (tracking the
-root `package.json`, tagged `v{version}`, unchanged) and `web` (tracking `demo/package.json`,
+root `package.json`, tagged `v{version}`, unchanged) and `web` (tracking `website/package.json`,
 tagged `web-v{version}`). Each tag shape triggers its own workflow: `release.yml` still
-publishes `main` to npm on a `v*` tag; the new `release-web.yml` deploys the demo to Pages on a
+publishes `main` to npm on a `v*` tag; the new `release-web.yml` deploys the website to Pages on a
 `web-v*` tag and nothing else. `okcodes/vump/.github/actions/check` reads the pushed tag and
 infers which project it belongs to from its shape, so neither workflow has to say `--project`
 explicitly. Shipping a site-only change is now `vump patch --project web --tag --push` - no
 package version, no npm publish, no changelog entry.
 
-One consequence: a stable package release no longer auto-redeploys the demo, so the version badge
-in its header can lag one release behind until the demo is deployed again. That's a deliberate
+One consequence: a stable package release no longer auto-redeploys the website, so the version badge
+in its header can lag one release behind until the website is deployed again. That's a deliberate
 trade for dropping the second trigger path entirely, rather than keeping both wired into one
 shared deploy job.
 
-**The demo shows its own version, fixed at a corner, not just a commit hash.** Now that `web` is a
+**The website shows its own version, fixed at a corner, not just a commit hash.** Now that `web` is a
 real, independently-tagged project, a small `VersionBadge` renders
-`v{demo/package.json version}-{short commit sha}` - e.g. `v0.1.3-alpha.0-29d9871` - by importing
-`demo/package.json` directly rather than adding a new build-time env var for it: the file is
+`v{website/package.json version}-{short commit sha}` - e.g. `v0.1.3-alpha.0-29d9871` - by importing
+`website/package.json` directly rather than adding a new build-time env var for it: the file is
 already the declared source of truth vump keeps in sync with the `web-v*` tag, so reading it
 directly can't drift from that the way a separately-computed value could. It moved out of the
 sticky nav (where it was sha-only before, and needed inline layout care to avoid crowding the
@@ -131,24 +131,24 @@ npm/GitHub icons). It's `fixed`, not placed in the footer's normal document flow
 reports are screenshots, and this needs to show up in every one of them without the reporter
 scrolling to the bottom first.
 
-**No more pinning-with-retry.** The old job pinned the demo's dependency to the exact version its
+**No more pinning-with-retry.** The old job pinned the website's dependency to the exact version its
 own run had *just* published (`pnpm add @codehacks/virtual-console@<version>`), retried because
 the registry hadn't necessarily propagated it yet. That race only existed because publish and
 deploy happened in the same run. Now they never do: `release-web.yml` just runs
-`pnpm install --frozen-lockfile` - the committed `demo/pnpm-lock.yaml` is the declared input, not
+`pnpm install --frozen-lockfile` - the committed `website/pnpm-lock.yaml` is the declared input, not
 something the deploy job discovers or pins live. Same
 ["Build inputs are declared, never discovered"](CLAUDE.md#build-inputs-are-declared-never-discovered)
 principle as before, just resolved by removing the race instead of retrying around it.
 
 **`pnpm-lock.yaml` is committed here, unlike `examples/published/*`.** That precedent's whole
 justification for an uncommitted lockfile is "float on `@latest`" for the one dependency that
-matters. `demo/` doesn't want that anymore - deploying is now decoupled from publishing (above),
+matters. `website/` doesn't want that anymore - deploying is now decoupled from publishing (above),
 so nothing re-pins `@codehacks/virtual-console` at deploy time. An uncommitted lockfile would just
 let every dependency (that one included) drift unreproducibly on every install, local or CI.
-`demo/package.json` itself pins the dependency to an exact resolved version rather than a `latest`
+`website/package.json` itself pins the dependency to an exact resolved version rather than a `latest`
 alias, for the same reason - the file should say what's actually running, not defer to whatever a
 tag happens to resolve to at install time. Picking up a newer `@codehacks/virtual-console` is a
-deliberate, out-of-band step - `pnpm bump:demo:latest`, or `:alpha` / `:beta` / `:rc` to preview a
+deliberate, out-of-band step - `pnpm bump:website:latest`, or `:alpha` / `:beta` / `:rc` to preview a
 pre-release (a bare `pnpm update` can never reach those - a `latest`-alias/semver-range dependency
 only ever resolves to a stable version), committed like any other dependency bump, then a `web`
 release to actually deploy it - not something either workflow does on its own.
@@ -166,4 +166,4 @@ before touching it, since it wasn't implied by "make this one repo public."
   for shipping a zero-`eval` build.
 - [examples/README.md](examples/README.md) - local workspace examples vs. standalone
   published-package examples.
-- [demo/README.md](demo/README.md) - the public demo site and how its deploy works.
+- [website/README.md](website/README.md) - the public website and how its deploy works.
