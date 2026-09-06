@@ -10,24 +10,30 @@ Standalone project (own `pnpm-workspace.yaml`), same reasoning as `examples/publ
 # from the repo root
 pnpm dev:website
 pnpm build:website
-pnpm preview:website   # build + serve the real static output (dist/), prerendered HTML included
+pnpm preview:website         # build once, then serve the real static output (dist/)
+pnpm preview:website:watch   # same, but rebuilds on every save - refresh the browser yourself
 
 # or directly
 cd website
 pnpm install
 pnpm dev
 pnpm build && pnpm preview
+pnpm preview:watch
 ```
 
 `pnpm dev` (Vite's dev server) never runs the prerender step - `index.html`'s `#root` starts empty
 there and `main.tsx` client-renders into it (see [DECISIONS.md](../DECISIONS.md)). To see and debug
 the actual prerendered HTML a no-JS client or crawler would get - or to check something that only
-happens in the production build - use `preview:website` (or `pnpm build && pnpm preview` from
-`website/`) instead. It's a plain build-then-serve, not a dev server: no hot reload or watch mode,
-so re-run it after each change. That's a deliberate simplicity trade, not a limitation to fix -
-wiring up a watcher for a full rebuild (`tsc` + two `vite build` passes + the prerender script) on
-every change would add real complexity for a workflow that's normally reached for occasionally, not
-kept running all day like `pnpm dev`.
+happens in the production build - use one of the `preview*` commands instead, which build (prerender
+step included) and serve the real `dist/` output. `preview:website` is a one-shot build-then-serve;
+`preview:website:watch` (`scripts/watch-preview.mjs`) rebuilds automatically on every change under
+`src/` or `index.html` and leaves `vite preview` running, so you just refresh the browser after each
+rebuild finishes. No hot reload/HMR - a rebuild here is `tsc` + two `vite build` passes + the
+prerender script, not a single Vite module reload, so wiring up HMR on top of it isn't worth the
+complexity for a workflow you reach for to debug something prerender-specific, not one you'd keep
+open all day like `pnpm dev`. The watcher itself is a plain `node:fs` recursive watch with no new
+dependencies - deliberately, since a debounced full-rebuild loop this small doesn't need a `chokidar`
+or `concurrently` pulled in for it.
 
 ## Deployment
 

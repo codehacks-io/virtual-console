@@ -182,6 +182,30 @@ hydrates when `#root` already has children (a real build/preview load) and falls
 `release-website.yml` needed no changes - `pnpm run build` still ends with static files in
 `website/dist`, just with real markup already in them.
 
+**No-JS visitors get a warning banner, kept outside the React tree on purpose.** A `<noscript>`
+wrapping JSX children inside a hydrated React app is unreliable: React's hydration reconciliation
+ends up creating the children as real DOM nodes even with JS enabled (React uses `createElement`/
+`appendChild`, not the HTML parser's noscript-content-as-text rule the initial static HTML got right
+by luck). The banner lives directly in `index.html` instead, so React never touches it and the
+browser's native noscript hiding is the only thing controlling its visibility. It's `position:
+sticky` so it stays visible while scrolling instead of disappearing with the rest of the page - the
+one warning on this site that matters most, since the whole point of the page is the console demo,
+and a visitor who can't get it to open needs to know why. A `<style>` scoped inside the same
+`<noscript>` (so it too only exists when scripting is disabled) sets Nav's `<header>` to `position:
+static`, ceding the sticky-top-0 spot to the banner - without it, both elements would fight over
+`top: 0` while scrolling and visually overlap.
+
+**`preview:website:watch` rebuilds on save; no new dependencies for it.** `preview:website` (see
+above) is a one-shot build-then-serve, deliberately with no watch mode - a full rebuild here is
+`tsc -b` plus two `vite build` passes plus the prerender script, several seconds of unrelated
+tooling to wire hot-reload around for something reached for occasionally, not run all day like
+`dev:website`. Once it's a full-rebuild-on-change loop instead of true HMR, though, the fix is a
+plain debounce-and-shell-out: `scripts/watch-preview.mjs` uses Node's built-in recursive `fs.watch`
+on `src/` and `index.html` to re-run `pnpm run build`, alongside one long-lived `vite preview`
+process - which reads `dist/` from disk per request, so it reflects each rebuild without restarting.
+No `chokidar` or `concurrently` added for this; a watch-and-shell-out loop this small doesn't need
+either.
+
 ## Where to find the rest
 
 - [README.md](README.md) - installation, configuration, and the `replEnabled: false` escape hatch
